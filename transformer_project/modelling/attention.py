@@ -3,8 +3,9 @@ from torch import nn
 
 
 class Attention(nn.Module):
-    def __init__(self):
+    def __init__(self, mask_future=False):
         super().__init__()
+        self.mask_future = mask_future
 
     def forward(query, key, value, padding_mask):
         d_k = query.size(-1)
@@ -27,7 +28,12 @@ class Attention(nn.Module):
     def generate_combined_mask(self, q, padding_mask):
         seq_length = q.size(-2)
 
-        future_tokens_mask = torch.triu(torch.ones(seq_length, seq_length), diagonal=1)
+        if self.mask_future:
+            future_tokens_mask = torch.triu(
+                torch.ones(seq_length, seq_length), diagonal=1
+            )
+        else:
+            future_tokens_mask = torch.zeros(seq_length, seq_length)
 
         combined_mask = future_tokens_mask + padding_mask
         return combined_mask
