@@ -6,22 +6,22 @@ class Attention(nn.Module):
     def __init__(self):
         super().__init__()
 
-    def forward(self, q, k, v, padding_mask):
-        d_k = q.size(-1)
+    def forward(query, key, value, padding_mask):
+        d_k = query.size(-1)
         scores = (
-            q
-            @ torch.transpose(k, -2, -1)
+            query
+            @ torch.transpose(key, -2, -1)
             / torch.sqrt(torch.tensor(d_k, dtype=torch.float32))
         )
 
-        combined_mask = self.generate_combined_mask(q, padding_mask)
+        combined_mask = self.generate_combined_mask(query, padding_mask)
 
         # if padding_mask is not None:
         scores = scores.masked_fill(combined_mask == 1, -1e9)
 
         attention_weights = torch.softmax(scores, dim=-1)
 
-        result = attention_weights @ v
+        result = attention_weights @ value
         return result, attention_weights
 
     def generate_combined_mask(self, q, padding_mask):
