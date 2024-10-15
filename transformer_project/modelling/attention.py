@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+import math
 
 
 class Attention(nn.Module):
@@ -7,33 +8,27 @@ class Attention(nn.Module):
         super().__init__()
         self.mask_future = mask_future
 
-    def forward(query, key, value, padding_mask):
+    def forward(self, query, key, value, mask=None):
         d_k = query.size(-1)
-        scores = (
-            query
-            @ torch.transpose(key, -2, -1)
-            / torch.sqrt(torch.tensor(d_k, dtype=torch.float32))
-        )
+        scores = query @ key.transpose(-2, -1) / math.sqrt(d_k)
 
-        combined_mask = self.generate_combined_mask(query, padding_mask)
+        # add asserts for dimension matching
 
-        # if padding_mask is not None:
-        scores = scores.masked_fill(combined_mask == 1, -1e9)
+        batch_size = query.size(0)
+        seq_length_q = query.size(-2)
+        seq_length_k = key.size(-2)
+
+        if self.mask_future:
+            future_tokens_mask = torch.triu(
+                torch.ones(seq_length_q, seq_length_k), diagonal=1
+            )
+            scores = scores.masked_fill(future_tokens_mask==1,-1e9)
+
+        if mask is not None:
+            padding_mask = mask.unsqueeze(1).expand(batch_size, seq_length_q, seq_length_k)
+            scores = scores.masked_fill(padding_mask==0, -1e9)
 
         attention_weights = torch.softmax(scores, dim=-1)
 
         result = attention_weights @ value
-        return result, attention_weights
-
-    def generate_combined_mask(self, q, padding_mask):
-        seq_length = q.size(-2)
-
-        if self.mask_future:
-            future_tokens_mask = torch.triu(
-                torch.ones(seq_length, seq_length), diagonal=1
-            )
-        else:
-            future_tokens_mask = torch.zeros(seq_length, seq_length)
-
-        combined_mask = future_tokens_mask + padding_mask
-        return combined_mask
+        return result
