@@ -1,4 +1,4 @@
-from collections import defaultdict, Counter
+from collections import Counter
 import string
 
 corpus = [
@@ -50,7 +50,6 @@ def create_rule(pair_freqs, rules, vocabulary):
     pair_freqs.pop(most_common_pair[0])
 
 
-
 def replace_in_splits(splits, rules):
     for _, split in splits.items():
         i = 0
@@ -60,9 +59,8 @@ def replace_in_splits(splits, rules):
                 split[i : i + 2] = [rules[pair]]
             i += 1
 
+
 while len(vocabulary) < 64:
     pair_freqs = compute_pair_freqs(splits)
     create_rule(pair_freqs, rules, vocabulary)
     replace_in_splits(splits, rules)
-
-print(vocabulary)

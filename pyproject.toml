@@ -9,6 +9,7 @@ readme = "README.md"
 python = "^3.10"
 torch = "^2.4.1"
 datasets = "^3.0.1"
+tokenizers = "^0.20.1"
 
 
 [tool.poetry.group.dev.dependencies]
