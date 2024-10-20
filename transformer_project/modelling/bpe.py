@@ -11,7 +11,6 @@ corpus = [
 
 text = " ".join(corpus)
 text = text.translate(str.maketrans("", "", string.punctuation))
-text = text.lower()
 
 words = text.split()
 
@@ -64,3 +63,30 @@ while len(vocabulary) < 64:
     pair_freqs = compute_pair_freqs(splits)
     create_rule(pair_freqs, rules, vocabulary)
     replace_in_splits(splits, rules)
+
+
+def encode(seq, vocab):
+    encoding = []
+    split_seq = seq.split()
+    vocabulary = sorted(vocab, key=len, reverse=True)
+
+    for word in split_seq:
+        while word:
+            matched = False
+            for entry in vocabulary:
+                if word.startswith(entry):
+                    encoding.append(entry)
+                    word = word[len(entry) :]
+                    matched = True
+                    break
+            if not matched:
+                encoding.append("<UNMATCHED>")
+                break
+    return encoding
+
+
+encoding = encode(
+    "Machine learning is a subset of artificial intelligence.", vocabulary
+)
+print(vocabulary)
+print(encoding)
