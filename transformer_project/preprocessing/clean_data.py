@@ -1,8 +1,7 @@
 import re
 from typing import List, Dict
-from datasets import load_dataset, DatasetDict, Dataset
+from datasets import DatasetDict
 
-dataset = load_dataset("wmt17", "de-en")
 
 WHITELIST = "abcdefghijklmnopqrstuvwxyz ÄÖÜäöüß ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?()[]{}:;-&$@#%£€/\\|_+*¥"
 
