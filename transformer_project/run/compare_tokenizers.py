@@ -12,7 +12,7 @@ trainer = trainers.BpeTrainer(
     initial_alphabet=pre_tokenizers.ByteLevel.alphabet()
 )
 tokenizer.train([
-    "/home/reck/personal/transformer_project/transformer_project/run/corpus.txt",
+    "/home/reck/personal/transformer_project/transformer_project/data/corpus.txt",
 ], trainer=trainer)
 
 # And Save it
