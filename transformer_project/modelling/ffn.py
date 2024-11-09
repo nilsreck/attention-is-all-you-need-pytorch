@@ -10,4 +10,4 @@ class PositionWiseFeedForward(nn.Module):
         )
 
         def forward(self, x):
-            return self.feed_forward(x)
+            return self.feed_forward(x) 
