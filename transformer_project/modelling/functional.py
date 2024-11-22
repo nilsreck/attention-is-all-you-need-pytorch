@@ -47,15 +47,15 @@ class TransformerDecoderLayer(nn.Module):
             input, input, input, attention_mask
         )
         residual_connections_mha = masked_attention_output + input
-        normalized_mha_output1 = self.layer_norm_1(residual_connections_mha)
+        normalized_queries = self.layer_norm_1(residual_connections_mha)
 
         attention_output = self.encoder_attention(
-            normalized_mha_output1,
+            normalized_queries,
             encoder_output,
             encoder_output,
             encoder_attention_mask,
         )
-        residual_connections_mha2 = attention_output + normalized_mha_output1
+        residual_connections_mha2 = attention_output + normalized_queries
         normalized_mha_output2 = self.layer_norm_2(residual_connections_mha2)
 
         ffn_outputs = self.feature_transformation(normalized_mha_output2)

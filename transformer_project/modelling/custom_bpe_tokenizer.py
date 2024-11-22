@@ -9,84 +9,73 @@ corpus = [
     "Understanding natural language is crucial in machine learning.",
 ]
 
-text = " ".join(corpus)
-text = text.translate(str.maketrans("", "", string.punctuation))
 
-words = text.split()
+class CustomBPETokenizer:
+    def __init__(self, vocab_size):
+        self.vocab_size = vocab_size
+        self.vocabulary = []
+        self.rules = {}
+        self.word_counter = None
+        self.splits = None
 
-word_counter = Counter(words)
+    def fit(self, corpus):
+        text = " ".join(corpus)
+        text = text.translate(str.maketrans("", "", string.punctuation))
+        words = text.split()
+        self.word_counter = Counter(words)
 
-vocabulary = []
-for s in text:
-    if s not in vocabulary and s != " ":
-        vocabulary.extend(s)
+        for s in text:
+            if s not in self.vocabulary and s != " ":
+                self.vocabulary.extend(s)
+        self.splits = {word: [c for c in word] for word in self.word_counter.keys()}
 
-splits = {word: [c for c in word] for word in word_counter.keys()}
+        while len(self.vocabulary) < 64:
+            pair_freqs = self._compute_pair_freqs(self.splits)
+            self._create_rule(pair_freqs)
+            self._replace_in_splits()
 
+    def encode(self, text):
+        encoding = []
+        split_seq = text.split()
+        sorted_vocab = sorted(self.vocabulary, key=len, reverse=True)
 
-def compute_pair_freqs(splits):
-    pair_freqs = Counter()
-    for word, freq in word_counter.items():
-        split = splits[word]
-        if len(split) == 1:
-            continue
-        for i in range(len(split) - 1):
-            pair = (split[i], split[i + 1])
-            pair_freqs[pair] += freq
-    return pair_freqs
-
-
-pair_freqs = compute_pair_freqs(splits)
-
-rules = {}
-
-
-def create_rule(pair_freqs, rules, vocabulary):
-    most_common_pair = pair_freqs.most_common(1)[0]
-    concatenated = "".join(most_common_pair[0])
-    rules[most_common_pair[0]] = concatenated
-    vocabulary.append(concatenated)
-    pair_freqs.pop(most_common_pair[0])
-
-
-def replace_in_splits(splits, rules):
-    for _, split in splits.items():
-        i = 0
-        while i < len(split) - 1:
-            pair = (split[i], split[i + 1])
-            if pair in rules:
-                split[i : i + 2] = [rules[pair]]
-            i += 1
-
-
-while len(vocabulary) < 64:
-    pair_freqs = compute_pair_freqs(splits)
-    create_rule(pair_freqs, rules, vocabulary)
-    replace_in_splits(splits, rules)
-
-
-def encode(seq, vocab):
-    encoding = []
-    split_seq = seq.split()
-    vocabulary = sorted(vocab, key=len, reverse=True)
-
-    for word in split_seq:
-        while word:
-            matched = False
-            for entry in vocabulary:
-                if word.startswith(entry):
-                    encoding.append(entry)
-                    word = word[len(entry) :]
-                    matched = True
+        for word in split_seq:
+            while word:
+                matched = False
+                for entry in sorted_vocab:
+                    if word.startswith(entry):
+                        encoding.append(entry)
+                        word = word[len(entry) :]
+                        matched = True
+                        break
+                if not matched:
+                    encoding.append("<UNMATCHED>")
                     break
-            if not matched:
-                encoding.append("<UNMATCHED>")
-                break
-    return encoding
+        return encoding
 
+    def _compute_pair_freqs(self, splits):
+        pair_freqs = Counter()
+        for word, freq in self.word_counter.items():
+            split = splits[word]
+            if len(split) == 1:
+                continue
+            for i in range(len(split) - 1):
+                pair = (split[i], split[i + 1])
+                pair_freqs[pair] += freq
+        return pair_freqs
 
-encoding = encode(
-    "Machine learning is a subset of artificial intelligence.", vocabulary
-)
-print(vocabulary)
-print(encoding)
+    def _create_rule(self, pair_freqs):
+        most_common_pair = pair_freqs.most_common(1)[0]
+        concatenated = "".join(most_common_pair[0])
+        self.rules[most_common_pair[0]] = concatenated
+        self.vocabulary.append(concatenated)
+        pair_freqs.pop(most_common_pair[0])
+
+    def _replace_in_splits(self):
+        for _, split in self.splits.items():
+            i = 0
+            while i < len(split) - 1:
+                pair = (split[i], split[i + 1])
+                if pair in self.rules:
+                    split[i : i + 2] = [self.rules[pair]]
+                i += 1
