@@ -1,6 +1,11 @@
+import os
+import sys
 import torch
 from torch import nn
 import math
+
+# Add the parent directory to the system path for importing modules
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 class Attention(nn.Module):

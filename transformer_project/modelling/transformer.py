@@ -1,7 +1,11 @@
-import torch
+import os
+import sys
 from torch import nn
+
+# Add the parent directory to the system path for importing modules
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from modelling.attention import BaseTransformerLayer, TransformerDecoderLayer
-from modelling.huggingface_bpe_tokenizer import CustomTokenizer
 from modelling.positional_encoding import PositonalEncoding
 
 
