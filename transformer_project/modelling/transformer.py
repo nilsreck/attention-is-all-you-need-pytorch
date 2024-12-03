@@ -5,8 +5,8 @@ from torch import nn
 # Add the parent directory to the system path for importing modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from modelling.attention import BaseTransformerLayer, TransformerDecoderLayer
-from modelling.positional_encoding import PositonalEncoding
+from transformer_project.modelling.functional import BaseTransformerLayer, TransformerDecoderLayer
+from transformer_project.modelling.positional_encoding import PositionalEncoding
 
 
 class Transformer(nn.Module):
@@ -23,7 +23,7 @@ class Transformer(nn.Module):
     ):
         super().__init__()
         self.embedding_layer = nn.Embedding(vocab_size, embedding_dim=d_model)
-        self.positional_encoding = PositonalEncoding(d_model, maxlen)
+        self.positional_encoding = PositionalEncoding(d_model, maxlen)
         self.encoder_layers = nn.ModuleList(
             [
                 BaseTransformerLayer(d_model, n_heads, dim_feedforward, dropout)

@@ -1,8 +1,8 @@
 import torch.nn as nn
 import os
 import sys
-from modelling.attention import MultiHeadAttention
-from modelling.ffn import PositionWiseFeedForward
+from transformer_project.modelling.attention import MultiHeadAttention
+from transformer_project.modelling.ffn import PositionWiseFeedForward
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
