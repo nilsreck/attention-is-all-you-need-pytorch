@@ -11,7 +11,7 @@ class CustomTokenizer:
         self,
         vocab_size=50000,
         min_frequency=2,
-        corpus_file="/home/reck/personal/transformer_project/transformer_project/byte-level-bpe_wmt17.tokenizer.json",
+        corpus_file="/home/reck/personal/transformer_project/transformer_project/data/byte-level-bpe_wmt17.tokenizer.json",
     ):
         self.vocab_size = vocab_size
         self.min_frequency = min_frequency
@@ -45,7 +45,7 @@ class CustomTokenizer:
 
         tokenizer.train([self.corpus_file], trainer=trainer)
         tokenizer.save(
-            "/home/reck/personal/transformer_project/transformer_project/byte-level-bpe_wmt17.tokenizer.json",
+            "/home/reck/personal/transformer_project/transformer_project/data/byte-level-bpe_wmt17.tokenizer.json",
             pretty=True,
         )
 
@@ -77,7 +77,7 @@ class CustomTokenizer:
 
     def load_gpt2_tokenizer(self):
         return GPT2Tokenizer.from_pretrained(
-            ".", vocab_file="vocab.json", merges_file="merges.txt"
+            "/home/reck/personal/transformer_project/transformer_project/data", vocab_file="vocab.json", merges_file="merges.txt"
         )
 
     def build_tokenizer(self):
