@@ -78,8 +78,8 @@ class CustomTokenizer:
     def load_gpt2_tokenizer(self):
         return GPT2Tokenizer.from_pretrained(
             "/home/reck/personal/transformer_project/transformer_project/data",
-            vocab_file="vocab.json",
-            merges_file="merges.txt",
+            vocab_file="/home/reck/personal/transformer_project/transformer_project/data/vocab.json",
+            merges_file="/home/reck/personal/transformer_project/transformer_project/data/merges.txt",
         )
 
     def build_tokenizer(self):
