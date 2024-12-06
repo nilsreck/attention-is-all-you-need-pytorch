@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
 import torch.optim as optim
 import torch.utils
-from torch.utils.data import DataLoader, Subset
+from torch.utils.data import DataLoader
 import torch.utils.data
 from tqdm import tqdm
 from datasets import load_dataset
@@ -12,6 +12,7 @@ from transformer_project.modelling.transformer import Transformer
 from transformer_project.modelling import huggingface_bpe_tokenizer
 from transformer_project.data.translation_dataset import TranslationDataset
 from transformer_project.modelling.lr_scheduler import LR_Scheduler
+from transformer_project.preprocessing.clean_data import clean_data
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -28,10 +29,11 @@ model = Transformer(
 
 # Initialize the data loader
 dataset = load_dataset("wmt17", "de-en", split="train[:5%]")
+cleaned_dataset = clean_data(dataset)
 custom_tokenizer = huggingface_bpe_tokenizer.CustomTokenizer()
 tokenizer = custom_tokenizer.build_tokenizer()
 
-train_dataset = TranslationDataset(dataset, tokenizer=tokenizer)
+train_dataset = TranslationDataset(cleaned_dataset, tokenizer=tokenizer)
 # validation_dataset = TranslationDataset(dataset["validation"], tokenizer=tokenizer)
 # test_dataset = TranslationDataset(dataset["test"], tokenizer=tokenizer)
 
@@ -81,7 +83,7 @@ lr_scheduler = LR_Scheduler(adamw_optimizer, d_model=32, warmup_steps=1000)
 def train(model, dataloader, optimizer, criterion, num_epochs=5):
     model.train()
 
-    losses = []
+    train_losses = []
 
     for epoch in tqdm(range(num_epochs), desc="Epochs"):
         epoch_loss = 0.0
