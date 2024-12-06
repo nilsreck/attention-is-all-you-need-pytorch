@@ -92,7 +92,7 @@ def train(model, dataloader, optimizer, criterion, num_epochs=5):
             y_batch = y_batch.to(device)
             optimizer.zero_grad()
 
-            preds = model(X_batch)
+            preds = model(X_batch, y_batch)
 
             loss = criterion(preds, y_batch)
             epoch_loss += loss.item() * X_batch.size(0)
@@ -101,11 +101,13 @@ def train(model, dataloader, optimizer, criterion, num_epochs=5):
             optimizer.step()
 
         epoch_loss /= len(dataloader.dataset)
-        losses.append(epoch_loss)
+        train_losses.append(epoch_loss)
+
+        lr_scheduler.step()
 
         print(f"Epoch {epoch+1}, Loss: {epoch_loss:.4f}")
 
-    return losses
+    return train_losses
 
 
 train(
