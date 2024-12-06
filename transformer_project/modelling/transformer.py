@@ -21,7 +21,9 @@ class Transformer(nn.Module):
     ):
         super().__init__()
         self.embedding_layer = nn.Embedding(vocab_size, embedding_dim=d_model)
-        self.positional_encoding = PositionalEncoding(d_model, maxlen)
+        self.positional_encoding = PositionalEncoding(
+            embedding_dim=d_model, sq_len=maxlen
+        )
         self.encoder_layers = nn.ModuleList(
             [
                 BaseTransformerLayer(d_model, n_heads, dim_feedforward, dropout)
@@ -36,12 +38,14 @@ class Transformer(nn.Module):
         )
 
     def forward(self, input, output, attention_mask=None, encoder_attention_mask=None):
-        input = self.embedding_layer(input) + self.positional_encoding(input)
+        input = self.embedding_layer(input)
+        input = self.positional_encoding(input)
         mem = input
         for layer in self.encoder_layers:
-            mem = layer(input, attention_mask)
+            mem = layer(mem, attention_mask)
 
-        output = self.embedding_layer(output) + self.positional_encoding(output)
+        output = self.embedding_layer(output)
+        output = self.positional_encoding(output)
         for layer in self.decoder_layers:
             output = layer(output, mem, encoder_attention_mask)
 

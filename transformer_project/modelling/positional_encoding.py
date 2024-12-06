@@ -10,7 +10,13 @@ class PositionalEncoding(nn.Module):
         pe = torch.zeros(sq_len, embedding_dim)
         pe[:, 0::2] = torch.sin(position / div_term)
         pe[:, 1::2] = torch.cos(position / div_term)
+
+        # Not a parameter
         self.register_buffer("positional_embedding", pe)
 
     def forward(self, input):
-        return input + self.positional_embedding[: input.size(1)]
+        #(batch size, seq len (in tokens), d_model)
+        seq_len = input.size(1)
+        transposed = self.positional_embedding.T
+        positional_embedding = self.positional_embedding[:seq_len, :].unsqueeze(0)
+        return input + positional_embedding

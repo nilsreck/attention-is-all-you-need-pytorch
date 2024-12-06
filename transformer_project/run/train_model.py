@@ -24,7 +24,7 @@ model = Transformer(
     num_encoder_layers=2,
     dim_feedforward=128,
     dropout=0.0,
-    maxlen=8,
+    maxlen=32,
 ).to(device)
 
 # Initialize the data loader
