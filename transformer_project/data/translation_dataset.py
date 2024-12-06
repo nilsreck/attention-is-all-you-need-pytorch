@@ -12,7 +12,7 @@ class TranslationDataset(Dataset):
         self.transform = transform
 
     def __len__(self):
-        return len(self.data)
+        return len(self.dataset)
 
     def __getitem__(self, idx):
         source_text = self.dataset[idx]["translation"][self.source_lang]
