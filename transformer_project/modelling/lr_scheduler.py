@@ -1,8 +1,5 @@
-from typing import Optimizer
-
-
 class LR_Scheduler:
-    def __init__(self, optimizer: Optimizer, d_model: int, warmup_steps: int):
+    def __init__(self, optimizer, d_model: int, warmup_steps: int):
         self.optimizer = optimizer
         self.d_model = d_model
         self.warmup_steps = warmup_steps

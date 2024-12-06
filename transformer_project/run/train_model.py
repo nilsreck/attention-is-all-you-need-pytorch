@@ -1,11 +1,18 @@
-import torch.optim as optim
+import torch
 import torch.nn as nn
-from transformer_project.modelling.transformer import Transformer
-from torch.utils.data import DataLoader
+import torch.optim as optim
+import torch.utils
+from torch.utils.data import DataLoader, Subset
+import torch.utils.data
+from tqdm import tqdm
 from datasets import load_dataset
+
+from transformer_project.modelling.transformer import Transformer
 from transformer_project.modelling import huggingface_bpe_tokenizer
 from transformer_project.data.translation_dataset import TranslationDataset
 from transformer_project.modelling.lr_scheduler import LR_Scheduler
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 model = Transformer(
     vocab_size=50000,
@@ -16,20 +23,20 @@ model = Transformer(
     dim_feedforward=128,
     dropout=0.0,
     maxlen=8,
-)
+).to(device)
 
 # Initialize the data loader
-dataset = load_dataset("wmt17", "de-en")
+dataset = load_dataset("wmt17", "de-en", split="train[:5%]")
 custom_tokenizer = huggingface_bpe_tokenizer.CustomTokenizer()
 tokenizer = custom_tokenizer.build_tokenizer()
 
-train_dataset = TranslationDataset(dataset["train"], tokenizer=tokenizer)
-validation_dataset = TranslationDataset(dataset["validation"], tokenizer=tokenizer)
-test_dataset = TranslationDataset(dataset["test"], tokenizer=tokenizer)
+train_dataset = TranslationDataset(dataset, tokenizer=tokenizer)
+# validation_dataset = TranslationDataset(dataset["validation"], tokenizer=tokenizer)
+# test_dataset = TranslationDataset(dataset["test"], tokenizer=tokenizer)
 
 train_dataloader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-validation_dataloader = DataLoader(validation_dataset, batch_size=32, shuffle=False)
-test_dataloader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+# validation_dataloader = DataLoader(validation_dataset, batch_size=32, shuffle=False)
+# test_dataloader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
 # Initialize the AdamW optimizer
 params_with_decay = []
@@ -56,3 +63,39 @@ criterion = nn.CrossEntropyLoss
 
 # Initialize the learning rate scheduler
 lr_scheduler = LR_Scheduler(adamw_optimizer, d_model=32, warmup_steps=1000)
+
+
+def train(model, dataloader, optimizer, criterion, num_epochs=5):
+    model.train()
+
+    losses = []
+
+    for epoch in tqdm(range(num_epochs), desc="Epochs"):
+        epoch_loss = 0.0
+        for X_batch, y_batch in tqdm(dataloader, desc="Batches", leave=False):
+            X_batch = X_batch.to(device)
+            y_batch = y_batch.to(device)
+            optimizer.zero_grad()
+
+            preds = model(X_batch)
+
+            loss = criterion(preds, y_batch)
+            epoch_loss += loss.item() * X_batch.size(0)
+
+            loss.backward()
+            optimizer.step()
+
+        epoch_loss /= len(dataloader.dataset)
+        losses.append(epoch_loss)
+
+        print(f"Epoch {epoch+1}, Loss: {epoch_loss:.4f}")
+
+    return losses
+
+
+train(
+    model=model,
+    dataloader=train_dataloader,
+    optimizer=adamw_optimizer,
+    criterion=criterion,
+)
