@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from torch.nn.utils.rnn import pad_sequence
 import torch.optim as optim
 import torch.utils
 from torch.utils.data import DataLoader, Subset
@@ -34,7 +35,19 @@ train_dataset = TranslationDataset(dataset, tokenizer=tokenizer)
 # validation_dataset = TranslationDataset(dataset["validation"], tokenizer=tokenizer)
 # test_dataset = TranslationDataset(dataset["test"], tokenizer=tokenizer)
 
-train_dataloader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+
+def collate_fn(batch):
+    source_batch, target_batch = zip(*batch)
+    source_batch = [torch.tensor(tokens) for tokens in source_batch]
+    target_batch = [torch.tensor(tokens) for tokens in target_batch]
+    source_padded = pad_sequence(source_batch, batch_first=True, padding_value=0)
+    target_padded = pad_sequence(target_batch, batch_first=True, padding_value=0)
+    return source_padded, target_padded
+
+
+train_dataloader = DataLoader(
+    train_dataset, batch_size=32, shuffle=True, collate_fn=collate_fn
+)
 # validation_dataloader = DataLoader(validation_dataset, batch_size=32, shuffle=False)
 # test_dataloader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
