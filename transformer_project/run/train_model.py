@@ -1,5 +1,11 @@
 import torch.optim as optim
+import torch.nn as nn
 from transformer_project.modelling.transformer import Transformer
+from torch.utils.data import DataLoader
+from datasets import load_dataset
+from transformer_project.modelling import huggingface_bpe_tokenizer
+from transformer_project.data.translation_dataset import TranslationDataset
+from transformer_project.modelling.lr_scheduler import LR_Scheduler
 
 model = Transformer(
     vocab_size=50000,
@@ -12,6 +18,20 @@ model = Transformer(
     maxlen=8,
 )
 
+# Initialize the data loader
+dataset = load_dataset("wmt17", "de-en")
+custom_tokenizer = huggingface_bpe_tokenizer.CustomTokenizer()
+tokenizer = custom_tokenizer.build_tokenizer()
+
+train_dataset = TranslationDataset(dataset["train"], tokenizer=tokenizer)
+validation_dataset = TranslationDataset(dataset["validation"], tokenizer=tokenizer)
+test_dataset = TranslationDataset(dataset["test"], tokenizer=tokenizer)
+
+train_dataloader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+validation_dataloader = DataLoader(validation_dataset, batch_size=32, shuffle=False)
+test_dataloader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+
+# Initialize the AdamW optimizer
 params_with_decay = []
 params_without_decay = []
 
@@ -22,7 +42,7 @@ for name, param in model.named_parameters():
     else:
         params_with_decay.append(param)
 
-optimizer = optim.AdamW(
+adamw_optimizer = optim.AdamW(
     [
         {"params": params_with_decay},
         {"params": params_without_decay, "weight_decay": 0.0},
@@ -30,3 +50,9 @@ optimizer = optim.AdamW(
     lr=1e-4,
     weight_decay=1e-2,
 )
+
+# Initialize the loss function
+criterion = nn.CrossEntropyLoss
+
+# Initialize the learning rate scheduler
+lr_scheduler = LR_Scheduler(adamw_optimizer, d_model=32, warmup_steps=1000)
