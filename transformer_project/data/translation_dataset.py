@@ -15,8 +15,8 @@ class TranslationDataset(Dataset):
         return len(self.dataset)
 
     def __getitem__(self, idx):
-        source_text = self.dataset[idx]["translation"][self.source_lang]
-        target_text = self.dataset[idx]["translation"][self.target_lang]
+        source_text = self.dataset[idx][self.source_lang]
+        target_text = self.dataset[idx][self.target_lang]
         source_tokens = self.tokenizer.encode(source_text)
         target_tokens = self.tokenizer.encode(target_text)
 
