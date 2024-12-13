@@ -39,18 +39,7 @@ train_dataset = TranslationDataset(cleaned_dataset, tokenizer=tokenizer)
 # test_dataset = TranslationDataset(dataset["test"], tokenizer=tokenizer)
 
 
-def collate_fn(batch):
-    source_batch, target_batch = zip(*batch)
-    source_batch = [torch.tensor(tokens) for tokens in source_batch]
-    target_batch = [torch.tensor(tokens) for tokens in target_batch]
-    source_padded = pad_sequence(source_batch, batch_first=True, padding_value=0)
-    target_padded = pad_sequence(target_batch, batch_first=True, padding_value=0)
-    return source_padded, target_padded
-
-
-train_dataloader = DataLoader(
-    train_dataset, batch_size=32, shuffle=True, collate_fn=collate_fn
-)
+train_dataloader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 # validation_dataloader = DataLoader(validation_dataset, batch_size=32, shuffle=False)
 # test_dataloader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
@@ -91,9 +80,14 @@ def train(model, dataloader, optimizer, criterion, num_epochs=5):
         for X_batch, y_batch in tqdm(dataloader, desc="Batches", leave=False):
             X_batch = X_batch.to(device)
             y_batch = y_batch.to(device)
-            optimizer.zero_grad()
 
+            print(f"X_batch shape: {X_batch.shape}")
+            print(f"y_batch shape: {y_batch.shape}")
+            print(f"y_batch max index: {y_batch.max()}")
+
+            optimizer.zero_grad()
             preds = model(X_batch, y_batch)
+            print(f"preds shape: {preds.shape}")
 
             loss = criterion(preds, y_batch)
             epoch_loss += loss.item() * X_batch.size(0)

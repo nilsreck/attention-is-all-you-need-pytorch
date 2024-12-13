@@ -47,6 +47,6 @@ class Transformer(nn.Module):
         output = self.embedding_layer(output)
         output = self.positional_encoding(output)
         for layer in self.decoder_layers:
-            output = layer(output, mem, encoder_attention_mask)
+            output = layer(output, mem, encoder_attention_mask, attention_mask)
 
         return output
