@@ -70,7 +70,7 @@ criterion = nn.CrossEntropyLoss()
 lr_scheduler = LR_Scheduler(adamw_optimizer, d_model=32, warmup_steps=1000)
 
 
-def train(model, dataloader, optimizer, criterion, num_epochs=5):
+def train(model, dataloader, optimizer, criterion, num_epochs=5, vocab_size=50000):
     model.train()
 
     train_losses = []
@@ -81,15 +81,12 @@ def train(model, dataloader, optimizer, criterion, num_epochs=5):
             X_batch = X_batch.to(device)
             y_batch = y_batch.to(device)
 
-            print(f"X_batch shape: {X_batch.shape}")
-            print(f"y_batch shape: {y_batch.shape}")
-            print(f"y_batch max index: {y_batch.max()}")
-
             optimizer.zero_grad()
             preds = model(X_batch, y_batch)
-            print(f"preds shape: {preds.shape}")
+            # preds.shape = [batch_size, seq_len, vocab_size]
+            # y_batch.shape = [batch_size, seq_len]
 
-            loss = criterion(preds, y_batch)
+            loss = criterion(preds.view(-1, vocab_size), y_batch.view(-1))
             epoch_loss += loss.item() * X_batch.size(0)
 
             loss.backward()
@@ -110,4 +107,5 @@ train(
     dataloader=train_dataloader,
     optimizer=adamw_optimizer,
     criterion=criterion,
+    vocab_size=50000,
 )
