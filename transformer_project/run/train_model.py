@@ -13,6 +13,7 @@ from transformer_project.modelling import huggingface_bpe_tokenizer
 from transformer_project.data.translation_dataset import TranslationDataset
 from transformer_project.modelling.lr_scheduler import LR_Scheduler
 from transformer_project.preprocessing.clean_data import clean_data
+from transformer_project.modelling.huggingface_bpe_tokenizer import CustomTokenizer
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -30,7 +31,7 @@ model = Transformer(
 # Initialize the data loader
 dataset = load_dataset("wmt17", "de-en", split="train[:5%]")
 cleaned_dataset = clean_data(dataset)
-custom_tokenizer = huggingface_bpe_tokenizer.CustomTokenizer()
+custom_tokenizer = CustomTokenizer()
 tokenizer = custom_tokenizer.build_tokenizer()
 
 train_dataset = TranslationDataset(cleaned_dataset, tokenizer=tokenizer)
@@ -74,7 +75,7 @@ adamw_optimizer = optim.AdamW(
 )
 
 # Initialize the loss function
-criterion = nn.CrossEntropyLoss
+criterion = nn.CrossEntropyLoss()
 
 # Initialize the learning rate scheduler
 lr_scheduler = LR_Scheduler(adamw_optimizer, d_model=32, warmup_steps=1000)

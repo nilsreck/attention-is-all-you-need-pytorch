@@ -16,7 +16,11 @@ class CustomTokenizer:
         self.vocab_size = vocab_size
         self.min_frequency = min_frequency
         self.corpus_file = corpus_file
-        self.special_tokens = ["[PAD]", "[BOS]", "[EOS]"]
+        self.special_tokens = {
+            "pad_token": "[PAD]",
+            "bos_token": "[BOS]",
+            "eos_token": "[EOS]",
+        }
 
     def load_and_clean_data(self):
         train_dataset = load_dataset("wmt17", "de-en", split="train")
@@ -40,7 +44,7 @@ class CustomTokenizer:
             vocab_size=self.vocab_size,
             min_frequency=self.min_frequency,
             initial_alphabet=pre_tokenizers.ByteLevel.alphabet(),
-            special_tokens=self.special_tokens,
+            special_tokens=list(self.special_tokens.values()),
         )
 
         tokenizer.train([self.corpus_file], trainer=trainer)
@@ -76,11 +80,13 @@ class CustomTokenizer:
                 f.write(" ".join(merge) + "\n")
 
     def load_gpt2_tokenizer(self):
-        return GPT2Tokenizer.from_pretrained(
+        tokenizer = GPT2Tokenizer.from_pretrained(
             "/home/reck/personal/transformer_project/transformer_project/data",
             vocab_file="/home/reck/personal/transformer_project/transformer_project/data/vocab.json",
             merges_file="/home/reck/personal/transformer_project/transformer_project/data/merges.txt",
         )
+        tokenizer.add_special_tokens(self.special_tokens)
+        return tokenizer
 
     def build_tokenizer(self):
         if not os.path.exists(self.corpus_file):
