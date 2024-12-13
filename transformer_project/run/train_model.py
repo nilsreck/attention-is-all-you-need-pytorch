@@ -29,18 +29,23 @@ model = Transformer(
 ).to(device)
 
 # Initialize the data loader
-dataset = load_dataset("wmt17", "de-en", split="train[:5%]")
-cleaned_dataset = clean_data(dataset)
+train_dataset_raw = load_dataset("wmt17", "de-en", split="train[:1%]")
+val_dataset_raw = load_dataset("wmt17", "de-en", split="validation[:10%]")
+
+cleaned_train = clean_data(train_dataset_raw)
+cleaned_val = clean_data(val_dataset_raw)
+print(f"validation test size: {len(cleaned_val)}")
+
 custom_tokenizer = CustomTokenizer()
 tokenizer = custom_tokenizer.build_tokenizer()
 
-train_dataset = TranslationDataset(cleaned_dataset, tokenizer=tokenizer)
-# validation_dataset = TranslationDataset(dataset["validation"], tokenizer=tokenizer)
+train_dataset = TranslationDataset(cleaned_train, tokenizer=tokenizer)
+validation_dataset = TranslationDataset(cleaned_val, tokenizer=tokenizer)
 # test_dataset = TranslationDataset(dataset["test"], tokenizer=tokenizer)
 
 
 train_dataloader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-# validation_dataloader = DataLoader(validation_dataset, batch_size=32, shuffle=False)
+validation_dataloader = DataLoader(validation_dataset, batch_size=32, shuffle=False)
 # test_dataloader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
 # Initialize the AdamW optimizer
@@ -70,14 +75,22 @@ criterion = nn.CrossEntropyLoss()
 lr_scheduler = LR_Scheduler(adamw_optimizer, d_model=32, warmup_steps=1000)
 
 
-def train(model, dataloader, optimizer, criterion, num_epochs=5, vocab_size=50000):
-    model.train()
-
+def train_and_validate(
+    model,
+    train_dataloader,
+    val_dataloader,
+    optimizer,
+    criterion,
+    num_epochs=5,
+    vocab_size=50000,
+):
     train_losses = []
+    val_losses = []
 
-    for epoch in tqdm(range(num_epochs), desc="Epochs"):
-        epoch_loss = 0.0
-        for X_batch, y_batch in tqdm(dataloader, desc="Batches", leave=False):
+    for epoch in range(num_epochs):
+        model.train()
+        train_loss = 0.0
+        for X_batch, y_batch in tqdm(train_dataloader, desc=f"Training Epoch {epoch}"):
             X_batch = X_batch.to(device)
             y_batch = y_batch.to(device)
 
@@ -87,24 +100,41 @@ def train(model, dataloader, optimizer, criterion, num_epochs=5, vocab_size=5000
             # y_batch.shape = [batch_size, seq_len]
 
             loss = criterion(preds.view(-1, vocab_size), y_batch.view(-1))
-            epoch_loss += loss.item() * X_batch.size(0)
-
             loss.backward()
             optimizer.step()
+            lr_scheduler.step()
 
-        epoch_loss /= len(dataloader.dataset)
-        train_losses.append(epoch_loss)
+            train_loss += loss.item()
 
-        lr_scheduler.step()
+        model.eval()
+        val_loss = 0.0
+        with torch.no_grad():
+            for X_batch, y_batch in tqdm(
+                val_dataloader, desc=f"Validating Epoch {epoch}"
+            ):
+                X_batch = X_batch.to(device)
+                y_batch = y_batch.to(device)
 
-        print(f"Epoch {epoch+1}, Loss: {epoch_loss:.4f}")
+                preds = model(X_batch, y_batch)
+                loss = criterion(preds.view(-1, vocab_size), y_batch.view(-1))
+                val_loss += loss.item()
 
-    return train_losses
+        avg_train_loss = train_loss / len(train_dataloader)
+        avg_val_loss = val_loss / len(validation_dataloader)
+        train_losses.append(avg_train_loss)
+        val_losses.append(avg_val_loss)
+
+        print(
+            f"Epoch {epoch}, Train Loss: {avg_train_loss:.4f}, Val Loss = {avg_val_loss:.4f}"
+        )
+
+    return train_losses, val_losses
 
 
-train(
+train_losses, val_losses = train_and_validate(
     model=model,
-    dataloader=train_dataloader,
+    train_dataloader=train_dataloader,
+    val_dataloader=validation_dataloader,
     optimizer=adamw_optimizer,
     criterion=criterion,
     vocab_size=50000,
