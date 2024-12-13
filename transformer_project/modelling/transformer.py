@@ -36,6 +36,7 @@ class Transformer(nn.Module):
                 for _ in range(num_decoder_layers)
             ]
         )
+        self.linear_layer = nn.Linear(d_model, vocab_size)
 
     def forward(self, input, output, attention_mask=None, encoder_attention_mask=None):
         input = self.embedding_layer(input)
@@ -49,4 +50,5 @@ class Transformer(nn.Module):
         for layer in self.decoder_layers:
             output = layer(output, mem, encoder_attention_mask, attention_mask)
 
+        output = self.linear_layer(output)
         return output

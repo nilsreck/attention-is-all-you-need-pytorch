@@ -9,15 +9,17 @@ tokenizer.post_processor = processors.ByteLevel(trim_offsets=True)
 trainer = trainers.BpeTrainer(
     vocab_size=295,
     min_frequency=2,
-    initial_alphabet=pre_tokenizers.ByteLevel.alphabet()
+    initial_alphabet=pre_tokenizers.ByteLevel.alphabet(),
 )
-tokenizer.train([
-    "/home/reck/personal/transformer_project/transformer_project/data/corpus.txt",
-], trainer=trainer)
+tokenizer.train(
+    [
+        "/home/reck/personal/transformer_project/transformer_project/data/corpus.txt",
+    ],
+    trainer=trainer,
+)
 
 # And Save it
 tokenizer.save("byte-level-bpe.tokenizer.json", pretty=True)
 
 test = "Machine learning is a subset of artificial intelligence."
 encoded = tokenizer.encode(test)
-print(encoded.tokens)

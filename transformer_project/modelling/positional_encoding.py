@@ -15,9 +15,8 @@ class PositionalEncoding(nn.Module):
         self.register_buffer("positional_embedding", pe)
 
     def forward(self, input):
-        #(batch size, seq len (in tokens), d_model)
+        # (batch size, seq len (in tokens), d_model)
         seq_len = input.size(1)
-        print(input.shape)
         transposed = self.positional_embedding.T
         positional_embedding = self.positional_embedding[:seq_len, :].unsqueeze(0)
         return input + positional_embedding
