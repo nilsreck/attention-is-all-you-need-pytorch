@@ -3,3 +3,5 @@
 **/data/*
 
 !**/data/translation_dataset.py
+
+best_model.pt
