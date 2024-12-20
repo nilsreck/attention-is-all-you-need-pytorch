@@ -4,6 +4,7 @@ import os
 from transformers import GPT2Tokenizer
 from tokenizers import Tokenizer, models, pre_tokenizers, decoders, trainers, processors
 from transformer_project.preprocessing.clean_data import clean_data
+from pathlib import Path
 
 
 class CustomTokenizer:
@@ -11,7 +12,7 @@ class CustomTokenizer:
         self,
         vocab_size=50000,
         min_frequency=2,
-        corpus_file="/home/reck/personal/transformer_project/transformer_project/data/byte-level-bpe_wmt17.tokenizer.json",
+        corpus_file="/home/reck/personal/transformer_project/transformer_project/data/tokenizer/wmt17_cleaned_corpus.txt",
     ):
         self.vocab_size = vocab_size
         self.min_frequency = min_frequency
@@ -23,6 +24,10 @@ class CustomTokenizer:
         }
 
     def load_and_clean_data(self):
+        # Ensure directory exists
+        corpus_path = Path(self.corpus_file)
+        corpus_path.parent.mkdir(parents=True, exist_ok=True)
+
         train_dataset = load_dataset("wmt17", "de-en", split="train")
         cleaned_train_data = clean_data(train_dataset)
 
@@ -30,7 +35,7 @@ class CustomTokenizer:
         for example in cleaned_train_data:
             corpus.extend([example["de"], example["en"]])
 
-        with open(self.corpus_file, "w", encoding="utf-8") as f:
+        with open(corpus_path, "w", encoding="utf-8") as f:
             for sentence in corpus:
                 f.write(sentence + "\n")
 
@@ -49,13 +54,13 @@ class CustomTokenizer:
 
         tokenizer.train([self.corpus_file], trainer=trainer)
         tokenizer.save(
-            "/home/reck/personal/transformer_project/transformer_project/data/byte-level-bpe_wmt17.tokenizer.json",
+            "/home/reck/personal/transformer_project/transformer_project/data/tokenizer/byte-level-bpe_wmt17.tokenizer.json",
             pretty=True,
         )
 
     def convert_to_gpt2_format(self):
         with open(
-            "/home/reck/personal/transformer_project/transformer_project/data/byte-level-bpe_wmt17.tokenizer.json",
+            "/home/reck/personal/transformer_project/transformer_project/data/tokenizer/byte-level-bpe_wmt17.tokenizer.json",
             "r",
             encoding="utf-8",
         ) as f:
@@ -65,14 +70,14 @@ class CustomTokenizer:
         merges_list = data["model"]["merges"]
 
         with open(
-            "/home/reck/personal/transformer_project/transformer_project/data/vocab.json",
+            "/home/reck/personal/transformer_project/transformer_project/data/tokenizer/vocab.json",
             "w",
             encoding="utf-8",
         ) as f:
             json.dump(vocab_dict, f, ensure_ascii=False, indent=4)
 
         with open(
-            "/home/reck/personal/transformer_project/transformer_project/data/merges.txt",
+            "/home/reck/personal/transformer_project/transformer_project/data/tokenizer/merges.txt",
             "w",
             encoding="utf-8",
         ) as f:
@@ -81,9 +86,9 @@ class CustomTokenizer:
 
     def load_gpt2_tokenizer(self):
         tokenizer = GPT2Tokenizer.from_pretrained(
-            "/home/reck/personal/transformer_project/transformer_project/data",
-            vocab_file="/home/reck/personal/transformer_project/transformer_project/data/vocab.json",
-            merges_file="/home/reck/personal/transformer_project/transformer_project/data/merges.txt",
+            "/home/reck/personal/transformer_project/transformer_project/data/tokenizer",
+            vocab_file="/home/reck/personal/transformer_project/transformer_project/data/tokenizer/vocab.json",
+            merges_file="/home/reck/personal/transformer_project/transformer_project/data/tokenizer/merges.txt",
         )
         tokenizer.add_special_tokens(self.special_tokens)
         return tokenizer
@@ -92,9 +97,9 @@ class CustomTokenizer:
         if not os.path.exists(self.corpus_file):
             self.load_and_clean_data()
         if not os.path.exists(
-            "/home/reck/personal/transformer_project/transformer_project/data/vocab.json"
+            "/home/reck/personal/transformer_project/transformer_project/data/tokenizer/vocab.json"
         ) or not os.path.exists(
-            "/home/reck/personal/transformer_project/transformer_project/data/merges.txt"
+            "/home/reck/personal/transformer_project/transformer_project/data/tokeinzer_files/merges.txt"
         ):
             self.train_tokenizer()
             self.convert_to_gpt2_format()
