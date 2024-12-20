@@ -7,6 +7,7 @@ import torch.utils.data
 from tqdm import tqdm
 from datasets import load_dataset
 from pathlib import Path
+import json
 
 from transformer_project.modelling.transformer import Transformer
 from transformer_project.data.translation_dataset import TranslationDataset
@@ -27,13 +28,35 @@ model = Transformer(
     maxlen=32,
 ).to(device)
 
-# Initialize the data loader
-train_dataset_raw = load_dataset("wmt17", "de-en", split="train")
-val_dataset_raw = load_dataset("wmt17", "de-en", split="validation[:10%]")
 
-cleaned_train = clean_data(train_dataset_raw)
-cleaned_val = clean_data(val_dataset_raw)
-print(f"validation test size: {len(cleaned_val)}")
+def load_or_clean_data(split="train"):
+    project_root = Path(__file__).parent.parent
+    data_dir = project_root / "data"
+    data_dir.mkdir(parents=True, exist_ok=True)
+
+    cleaned_data_path = data_dir / f"cleaned_dataset_{split}.json"
+
+    if cleaned_data_path.exists():
+        print(f"Loading cached {split} data from {cleaned_data_path}")
+        with open(cleaned_data_path, "r") as f:
+            return json.load(f)
+
+    print(f"Creating new cleaned dataset for {split}...")
+    dataset_raw = load_dataset("wmt17", "de-en", split=split)
+    cleaned_data = clean_data(dataset_raw)
+
+    cleaned_data_path.parent.mkdir(parents=True, exist_ok=True)
+    print(f"Saving cleaned data to {cleaned_data_path}")
+    with open(cleaned_data_path, "w") as f:
+        json.dump(cleaned_data, f)
+
+    return cleaned_data
+
+
+cleaned_train = load_or_clean_data("train[:1%]")
+cleaned_val = load_or_clean_data("validation[:10%]")
+print(f"Train size: {len(cleaned_train)}")
+print(f"Validation size: {len(cleaned_val)}")
 
 project_root = Path(__file__).parent.parent.parent
 data_dir = project_root / "data" / "tokenizer"

@@ -24,20 +24,23 @@ class CustomTokenizer:
         }
 
     def load_and_clean_data(self):
-        # Ensure directory exists
         corpus_path = Path(self.corpus_file)
-        corpus_path.parent.mkdir(parents=True, exist_ok=True)
+        cleaned_data_path = corpus_path.parent / "cleaned_dataset.json"
 
+        if cleaned_data_path.exists():
+            print(f"Loading cached cleaned data from {cleaned_data_path}")
+            with open(cleaned_data_path, "r") as f:
+                return json.load(f)
+
+        print("Cleaning dataset...")
         train_dataset = load_dataset("wmt17", "de-en", split="train")
         cleaned_train_data = clean_data(train_dataset)
 
-        corpus = []
-        for example in cleaned_train_data:
-            corpus.extend([example["de"], example["en"]])
+        # Save cleaned data
+        with open(cleaned_data_path, "w") as f:
+            json.dump(cleaned_train_data, f)
 
-        with open(corpus_path, "w", encoding="utf-8") as f:
-            for sentence in corpus:
-                f.write(sentence + "\n")
+        return cleaned_train_data
 
     def train_tokenizer(self):
         tokenizer = Tokenizer(models.BPE())
