@@ -28,15 +28,20 @@ model = Transformer(
 ).to(device)
 
 # Initialize the data loader
-train_dataset_raw = load_dataset("wmt17", "de-en", split="train[:100]")
+train_dataset_raw = load_dataset("wmt17", "de-en", split="train")
 val_dataset_raw = load_dataset("wmt17", "de-en", split="validation[:10%]")
 
 cleaned_train = clean_data(train_dataset_raw)
 cleaned_val = clean_data(val_dataset_raw)
 print(f"validation test size: {len(cleaned_val)}")
 
-custom_tokenizer = CustomTokenizer()
-tokenizer = custom_tokenizer.build_tokenizer()
+project_root = Path(__file__).parent.parent.parent
+data_dir = project_root / "data" / "tokenizer"
+
+custom_tokenizer = CustomTokenizer(
+    vocab_size=50000, corpus_file=str(data_dir / "byte-level-bpe_wmt17.tokenizer.json")
+)
+tokenizer = custom_tokenizer.load_gpt2_tokenizer()  # Load pre-trained tokenizer
 
 train_dataset = TranslationDataset(cleaned_train, tokenizer=tokenizer)
 validation_dataset = TranslationDataset(cleaned_val, tokenizer=tokenizer)
@@ -47,7 +52,6 @@ train_dataloader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 validation_dataloader = DataLoader(validation_dataset, batch_size=32, shuffle=False)
 # test_dataloader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
-# Initialize the AdamW optimizer
 params_with_decay = []
 params_without_decay = []
 
@@ -67,10 +71,8 @@ adamw_optimizer = optim.AdamW(
     weight_decay=1e-2,
 )
 
-# Initialize the loss function
 criterion = nn.CrossEntropyLoss()
 
-# Initialize the learning rate scheduler
 lr_scheduler = LR_Scheduler(adamw_optimizer, d_model=32, warmup_steps=1000)
 
 
