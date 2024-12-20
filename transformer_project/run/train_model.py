@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-from torch.nn.utils.rnn import pad_sequence
 import torch.optim as optim
 import torch.utils
 from torch.utils.data import DataLoader
@@ -9,7 +8,6 @@ from tqdm import tqdm
 from datasets import load_dataset
 
 from transformer_project.modelling.transformer import Transformer
-from transformer_project.modelling import huggingface_bpe_tokenizer
 from transformer_project.data.translation_dataset import TranslationDataset
 from transformer_project.modelling.lr_scheduler import LR_Scheduler
 from transformer_project.preprocessing.clean_data import clean_data
@@ -29,7 +27,7 @@ model = Transformer(
 ).to(device)
 
 # Initialize the data loader
-train_dataset_raw = load_dataset("wmt17", "de-en", split="train[:1%]")
+train_dataset_raw = load_dataset("wmt17", "de-en", split="train[:100]")
 val_dataset_raw = load_dataset("wmt17", "de-en", split="validation[:10%]")
 
 cleaned_train = clean_data(train_dataset_raw)
@@ -86,6 +84,7 @@ def train_and_validate(
 ):
     train_losses = []
     val_losses = []
+    best_val_loss = float("inf")
 
     for epoch in range(num_epochs):
         model.train()
@@ -123,6 +122,10 @@ def train_and_validate(
         avg_val_loss = val_loss / len(validation_dataloader)
         train_losses.append(avg_train_loss)
         val_losses.append(avg_val_loss)
+
+        if avg_val_loss < best_val_loss:
+            best_val_loss = avg_val_loss
+            torch.save(model.state_dict(), "best_model.pt")
 
         print(
             f"Epoch {epoch}, Train Loss: {avg_train_loss:.4f}, Val Loss = {avg_val_loss:.4f}"
