@@ -78,7 +78,7 @@ def train_and_validate(
     val_dataloader,
     optimizer,
     criterion,
-    num_epochs=1,
+    num_epochs=3,
     vocab_size=50000,
 ):
     train_losses = []
@@ -98,8 +98,19 @@ def train_and_validate(
             #  print(f"X_batch: {X_batch}")
             y_batch = y_batch.to(device)
 
+            encoder_attention_mask = (X_batch != tokenizer.pad_token_id).int()
+            decoder_attention_mask = (y_batch != tokenizer.pad_token_id).int()
+            enc_att_mask, dec_att_mask = encoder_attention_mask.to(
+                device
+            ), decoder_attention_mask.to(device)
+
             optimizer.zero_grad()
-            preds = model(X_batch, y_batch)
+            preds = model(
+                X_batch,
+                y_batch,
+                encoder_attention_mask=enc_att_mask,
+                decoder_attention_mask=dec_att_mask,
+            )
 
             # print(f"preds.shape: {preds.shape}")
             # print(f"Predictions: {preds.argmax(-1)}")
