@@ -43,18 +43,16 @@ class TransformerDecoderLayer(nn.Module):
         self.layer_norm_2 = nn.LayerNorm(input_dim, bias=False)
         self.layer_norm_3 = nn.LayerNorm(input_dim, bias=False)
 
-    def forward(self, input, encoder_output, encoder_attention_mask, attention_mask):
-        masked_attention_output = self.self_attention(
-            input, input, input, attention_mask
-        )
-        residual_connections_mha = masked_attention_output + input
+    def forward(self, input, encoder_output, enc_att_mask, dec_att_mask):
+        self_attention_output = self.self_attention(input, input, input, dec_att_mask)
+        residual_connections_mha = self_attention_output + input
         normalized_queries = self.layer_norm_1(residual_connections_mha)
 
         attention_output = self.encoder_attention(
             normalized_queries,
             encoder_output,
             encoder_output,
-            encoder_attention_mask,
+            enc_att_mask,
         )
         residual_connections_mha2 = attention_output + normalized_queries
         normalized_mha_output2 = self.layer_norm_2(residual_connections_mha2)

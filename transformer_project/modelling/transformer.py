@@ -15,7 +15,7 @@ class Transformer(nn.Module):
         n_heads,
         num_encoder_layers,
         num_decoder_layers,
-        dim_feedforward,
+        dim_feed_forward,
         dropout,
         maxlen,
     ):
@@ -28,19 +28,25 @@ class Transformer(nn.Module):
         )
         self.encoder_layers = nn.ModuleList(
             [
-                BaseTransformerLayer(d_model, n_heads, dim_feedforward, dropout)
+                BaseTransformerLayer(d_model, n_heads, dim_feed_forward, dropout)
                 for _ in range(num_encoder_layers)
             ]
         )
         self.decoder_layers = nn.ModuleList(
             [
-                TransformerDecoderLayer(d_model, n_heads, dim_feedforward, dropout)
+                TransformerDecoderLayer(d_model, n_heads, dim_feed_forward, dropout)
                 for _ in range(num_decoder_layers)
             ]
         )
         self.linear_layer = nn.Linear(d_model, vocab_size)
 
-    def forward(self, input, output, attention_mask=None, encoder_attention_mask=None):
+    def forward(
+        self,
+        input,
+        output,
+        encoder_attention_mask=None,
+        decoder_attention_mask=None,
+    ):
         input = self.embedding_layer(input)
         input = self.positional_encoding(input)
         mem = input
@@ -50,7 +56,7 @@ class Transformer(nn.Module):
         output = self.embedding_layer(output)
         output = self.positional_encoding(output)
         for layer in self.decoder_layers:
-            output = layer(output, mem, encoder_attention_mask, attention_mask)
+            output = layer(output, mem, encoder_attention_mask, decoder_attention_mask)
 
         output = self.linear_layer(output)
         return output

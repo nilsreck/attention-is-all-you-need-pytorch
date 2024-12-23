@@ -15,14 +15,16 @@ from transformer_project.modelling.huggingface_bpe_tokenizer import CustomTokeni
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+d_model = 64
+dim_feed_forward = 4 * d_model
 
 model = Transformer(
     vocab_size=50000,
-    d_model=32,
+    d_model=d_model,
     n_heads=8,
-    num_decoder_layers=2,
-    num_encoder_layers=2,
-    dim_feedforward=128,
+    num_decoder_layers=4,
+    num_encoder_layers=4,
+    dim_feedforward=dim_feed_forward,
     dropout=0.0,
     maxlen=32,
 ).to(device)
@@ -78,7 +80,7 @@ def train_and_validate(
     val_dataloader,
     optimizer,
     criterion,
-    num_epochs=3,
+    num_epochs=5,
     vocab_size=50000,
 ):
     train_losses = []
@@ -86,9 +88,9 @@ def train_and_validate(
     best_val_loss = float("inf")
 
     for epoch in range(num_epochs):
-        print("Model's state_dict:")
-        for param_tensor in model.state_dict():
-            print(param_tensor, "\t", model.state_dict()[param_tensor].size())
+        # print("Model's state_dict:")
+        # for param_tensor in model.state_dict():
+        # print(param_tensor, "\t", model.state_dict()[param_tensor].size())
 
         model.train()
         train_loss = 0.0
