@@ -17,9 +17,9 @@ def load_model(checkpoint_path: str, dim_feedforward: int, device: str, d_model:
     ).to(device)
 
     model.load_state_dict(torch.load(checkpoint_path))
-    print("Model's state_dict:")
-    for param_tensor in model.state_dict():
-        print(param_tensor, "\t", model.state_dict()[param_tensor].size())
+    #     print("Model's state_dict:")
+    #     for param_tensor in model.state_dict():
+    #         print(param_tensor, "\t", model.state_dict()[param_tensor].size())
 
     return model.to(device)
 
@@ -34,32 +34,48 @@ def translate_sentence(model, text: str, tokenizer, device="cuda", max_len=32):
     ).to(device)
 
     print(f"Decoder input token ids: {decoder_input_token_ids}")
-    input_ids = tokenizer.encode(
-        text, padding="max_length", max_length=max_len, truncation=True
+    src_seq = (
+        torch.tensor(
+            tokenizer.encode(
+                text, padding="max_length", max_length=max_len, truncation=True
+            )
+        )
+        .unsqueeze(0)
+        .to(device)
     )
 
-    input_tensor = torch.tensor(input_ids).unsqueeze(0).to(device)
+    # No batch processing yet
+    assert src_seq.size(0) == 1
 
-    # Encoder mask to indicate which tokens are padding tokens
-    encoder_mask = (input_tensor != pad_token_id).int()
-    print(f"Input tensor: {input_tensor}")
-    print(f"Input tensor shape: {input_tensor.shape}")
+    with torch.no_grad():
+        # Encoder mask to indicate which tokens are padding tokens
+        encoder_mask = (src_seq != pad_token_id).int()
+        decoder_mask = (decoder_input_token_ids != pad_token_id).int().unsqueeze(0)
+        enc_mask, dec_mask = encoder_mask.to(device), decoder_mask.to(device)
+        print(
+            f"Encoder mask shape: {enc_mask.shape}, decoder mask shape: {dec_mask.shape}"
+        )
+        print(f"Input tensor: {src_seq}")
+        print(f"Input tensor shape: {src_seq.shape}")
 
-    for i in range(max_len - 1):
-        with torch.no_grad():
-            output = model(input_tensor, decoder_input_token_ids, encoder_mask)
-        print(f"output shape: {output.shape}")
-        print(f"output: {output}")
-        next_token = torch.argmax(output, dim=-1)
-        print(f"Next token id: {next_token}")
-        next_token_id = next_token[0, i].item()
+        for i in range(max_len - 1):
+            output = model(src_seq, decoder_input_token_ids, enc_mask, dec_mask)
+            print(f"output shape: {output.shape}")
+            print(f"output: {output}")
+            next_token = torch.argmax(output, dim=-1)
+            print(f"Next token id: {next_token}")
+            next_token_id = next_token[0, i].item()
 
-        decoder_input_token_ids[i + 1] = next_token_id
+            decoder_input_token_ids[i + 1] = next_token_id
+            dec_mask = (decoder_input_token_ids != pad_token_id).int()
+            print(f"Decoder mask: {dec_mask}")
 
-        if next_token_id == tokenizer.eos_token_id:
-            break
+            if next_token_id == tokenizer.eos_token_id:
+                break
 
-        print(f"Decoder input: {decoder_input_token_ids}")
+            print(f"Decoder input: {decoder_input_token_ids}")
+
+            dec_mask = (decoder_input_token_ids != pad_token_id).int().unsqueeze(0)
 
     translation = tokenizer.decode(decoder_input_token_ids, skip_special_tokens=True)
 

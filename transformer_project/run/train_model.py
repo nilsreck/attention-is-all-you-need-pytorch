@@ -24,7 +24,7 @@ model = Transformer(
     n_heads=8,
     num_decoder_layers=4,
     num_encoder_layers=4,
-    dim_feedforward=dim_feed_forward,
+    dim_feed_forward=dim_feed_forward,
     dropout=0.0,
     maxlen=32,
 ).to(device)
@@ -120,7 +120,7 @@ def train_and_validate(
             translation = tokenizer.decode(
                 preds.argmax(-1)[0], skip_special_tokens=True
             )
-            # print(f"Translation: {translation}")
+            print(f"Translation: {translation}")
 
             # preds.shape = [batch_size, seq_len, vocab_size]
             # y_batch.shape = [batch_size, seq_len]
