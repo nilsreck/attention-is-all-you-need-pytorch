@@ -36,11 +36,12 @@ class TransformerDecoderLayer(nn.Module):
         self.input_dim = input_dim
 
         self.self_attention = MultiHeadAttention(input_dim, num_heads, mask_future=True)
-        self.layer_norm_1 = nn.LayerNorm(input_dim)
         self.encoder_attention = MultiHeadAttention(input_dim, num_heads)
-        self.layer_norm_2 = nn.LayerNorm(input_dim)
         self.feature_transformation = PositionWiseFeedForward(input_dim, feature_dim)
-        self.layer_norm_3 = nn.LayerNorm(input_dim)
+
+        self.layer_norm_1 = nn.LayerNorm(input_dim, bias=False)
+        self.layer_norm_2 = nn.LayerNorm(input_dim, bias=False)
+        self.layer_norm_3 = nn.LayerNorm(input_dim, bias=False)
 
     def forward(self, input, encoder_output, encoder_attention_mask, attention_mask):
         masked_attention_output = self.self_attention(

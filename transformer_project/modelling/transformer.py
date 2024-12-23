@@ -20,7 +20,9 @@ class Transformer(nn.Module):
         maxlen,
     ):
         super().__init__()
-        self.embedding_layer = nn.Embedding(vocab_size, embedding_dim=d_model)
+        self.embedding_layer = nn.Embedding(
+            vocab_size, embedding_dim=d_model
+        )  # shared embeddings
         self.positional_encoding = PositionalEncoding(
             embedding_dim=d_model, sq_len=maxlen
         )
@@ -43,7 +45,7 @@ class Transformer(nn.Module):
         input = self.positional_encoding(input)
         mem = input
         for layer in self.encoder_layers:
-            mem = layer(mem, attention_mask)
+            mem = layer(mem, encoder_attention_mask)
 
         output = self.embedding_layer(output)
         output = self.positional_encoding(output)

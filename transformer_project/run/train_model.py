@@ -5,17 +5,16 @@ import torch.utils
 from torch.utils.data import DataLoader
 import torch.utils.data
 from tqdm import tqdm
-from datasets import load_dataset
 from pathlib import Path
-import json
 
 from transformer_project.modelling.transformer import Transformer
 from transformer_project.data.translation_dataset import TranslationDataset
 from transformer_project.modelling.lr_scheduler import LR_Scheduler
-from transformer_project.preprocessing.clean_data import clean_data
+from transformer_project.preprocessing.clean_data import load_or_clean_data
 from transformer_project.modelling.huggingface_bpe_tokenizer import CustomTokenizer
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
 model = Transformer(
     vocab_size=50000,
@@ -29,34 +28,8 @@ model = Transformer(
 ).to(device)
 
 
-def load_or_clean_data(split="train"):
-    project_root = Path(__file__).parent.parent
-    data_dir = project_root / "data"
-    data_dir.mkdir(parents=True, exist_ok=True)
-
-    cleaned_data_path = data_dir / f"cleaned_dataset_{split}.json"
-
-    if cleaned_data_path.exists():
-        print(f"Loading cached {split} data from {cleaned_data_path}")
-        with open(cleaned_data_path, "r") as f:
-            return json.load(f)
-
-    print(f"Creating new cleaned dataset for {split}...")
-    dataset_raw = load_dataset("wmt17", "de-en", split=split)
-    cleaned_data = clean_data(dataset_raw)
-
-    cleaned_data_path.parent.mkdir(parents=True, exist_ok=True)
-    print(f"Saving cleaned data to {cleaned_data_path}")
-    with open(cleaned_data_path, "w") as f:
-        json.dump(cleaned_data, f)
-
-    return cleaned_data
-
-
 cleaned_train = load_or_clean_data("train[:1%]")
 cleaned_val = load_or_clean_data("validation[:10%]")
-print(f"Train size: {len(cleaned_train)}")
-print(f"Validation size: {len(cleaned_val)}")
 
 project_root = Path(__file__).parent.parent.parent
 data_dir = project_root / "data" / "tokenizer"
@@ -105,7 +78,7 @@ def train_and_validate(
     val_dataloader,
     optimizer,
     criterion,
-    num_epochs=5,
+    num_epochs=1,
     vocab_size=50000,
 ):
     train_losses = []
@@ -113,14 +86,29 @@ def train_and_validate(
     best_val_loss = float("inf")
 
     for epoch in range(num_epochs):
+        print("Model's state_dict:")
+        for param_tensor in model.state_dict():
+            print(param_tensor, "\t", model.state_dict()[param_tensor].size())
+
         model.train()
         train_loss = 0.0
         for X_batch, y_batch in tqdm(train_dataloader, desc=f"Training Epoch {epoch}"):
             X_batch = X_batch.to(device)
+            #  print(f"X_batch.shape: {X_batch.shape}")
+            #  print(f"X_batch: {X_batch}")
             y_batch = y_batch.to(device)
 
             optimizer.zero_grad()
             preds = model(X_batch, y_batch)
+
+            # print(f"preds.shape: {preds.shape}")
+            # print(f"Predictions: {preds.argmax(-1)}")
+
+            translation = tokenizer.decode(
+                preds.argmax(-1)[0], skip_special_tokens=True
+            )
+            # print(f"Translation: {translation}")
+
             # preds.shape = [batch_size, seq_len, vocab_size]
             # y_batch.shape = [batch_size, seq_len]
 
@@ -151,7 +139,7 @@ def train_and_validate(
 
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
-            torch.save(model.state_dict(), "best_model.pt")
+            torch.save(model.state_dict(), "best_model.pth")
 
         print(
             f"Epoch {epoch}, Train Loss: {avg_train_loss:.4f}, Val Loss = {avg_val_loss:.4f}"

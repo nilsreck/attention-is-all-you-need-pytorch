@@ -10,13 +10,14 @@ class PositionalEncoding(nn.Module):
         pe = torch.zeros(sq_len, embedding_dim)
         pe[:, 0::2] = torch.sin(position / div_term)
         pe[:, 1::2] = torch.cos(position / div_term)
-
+        pe = pe.unsqueeze(0)
         # Not a parameter
-        self.register_buffer("positional_embedding", pe)
+        self.register_buffer("positional_embedding", pe, persistent=True)
 
     def forward(self, input):
-        # (batch size, seq len (in tokens), d_model)
+        # input: (batch size, seq len (in tokens), d_model)
         seq_len = input.size(1)
-        transposed = self.positional_embedding.T
-        positional_embedding = self.positional_embedding[:seq_len, :].unsqueeze(0)
+        positional_embedding = self.positional_embedding[:, :seq_len, :].requires_grad_(
+            False
+        )
         return input + positional_embedding

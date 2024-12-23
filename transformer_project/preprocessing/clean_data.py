@@ -1,9 +1,36 @@
 import re
 from typing import List, Dict
 from datasets import DatasetDict
+from datasets import load_dataset
+import json
+from pathlib import Path
 
 
 WHITELIST = "abcdefghijklmnopqrstuvwxyz ÄÖÜäöüß ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?()[]{}:;-&$@#%£€/\\|_+*¥"
+
+
+def load_or_clean_data(split="train"):
+    project_root = Path(__file__).parent.parent
+    data_dir = project_root / "data"
+    data_dir.mkdir(parents=True, exist_ok=True)
+
+    cleaned_data_path = data_dir / f"cleaned_dataset_{split}.json"
+
+    if cleaned_data_path.exists():
+        print(f"Loading cached {split} data from {cleaned_data_path}")
+        with open(cleaned_data_path, "r") as f:
+            return json.load(f)
+
+    print(f"Creating new cleaned dataset for {split}...")
+    dataset_raw = load_dataset("wmt17", "de-en", split=split)
+    cleaned_data = clean_data(dataset_raw)
+
+    cleaned_data_path.parent.mkdir(parents=True, exist_ok=True)
+    print(f"Saving cleaned data to {cleaned_data_path}")
+    with open(cleaned_data_path, "w") as f:
+        json.dump(cleaned_data, f)
+
+    return cleaned_data
 
 
 def clean_text(text: str) -> str:
