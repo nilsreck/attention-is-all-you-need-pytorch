@@ -29,57 +29,29 @@ def translate_sentence(model, text: str, tokenizer, device="cuda", max_len=32):
     bos_token_id = tokenizer.bos_token_id
     pad_token_id = tokenizer.pad_token_id
 
-    decoder_input_token_ids = torch.tensor(
-        [bos_token_id] + [pad_token_id] * (max_len - 1)
-    ).to(device)
-
-    print(f"Decoder input token ids: {decoder_input_token_ids}")
-    src_seq = (
-        torch.tensor(
-            tokenizer.encode(
-                text, padding="max_length", max_length=max_len, truncation=True
-            )
-        )
-        .unsqueeze(0)
-        .to(device)
-    )
-
-    # No batch processing yet
-    assert src_seq.size(0) == 1
-
     with torch.no_grad():
-        # Encoder mask to indicate which tokens are padding tokens
+        src_seq = tokenizer.encode(text, return_tensors="pt").to(device)
         encoder_mask = (src_seq != pad_token_id).int()
-        decoder_mask = (decoder_input_token_ids != pad_token_id).int().unsqueeze(0)
-        enc_mask, dec_mask = encoder_mask.to(device), decoder_mask.to(device)
-        print(
-            f"Encoder mask shape: {enc_mask.shape}, decoder mask shape: {dec_mask.shape}"
-        )
-        print(f"Input tensor: {src_seq}")
-        print(f"Input tensor shape: {src_seq.shape}")
+
+        encoder_output = model.encode(src_seq, encoder_mask)
+
+        decoder_input = torch.tensor(
+            [bos_token_id] + [pad_token_id] * (max_len - 1)
+        ).to(device)
 
         for i in range(max_len - 1):
-            output = model(src_seq, decoder_input_token_ids, enc_mask, dec_mask)
-            print(f"output shape: {output.shape}")
-            print(f"output: {output}")
+            decoder_mask = (decoder_input != pad_token_id).int().unsqueeze(0)
+            output = model.decode(
+                decoder_input, encoder_output, encoder_mask, decoder_mask
+            )
             next_token = torch.argmax(output, dim=-1)
-            print(f"Next token id: {next_token}")
             next_token_id = next_token[0, i].item()
-
-            decoder_input_token_ids[i + 1] = next_token_id
-            dec_mask = (decoder_input_token_ids != pad_token_id).int()
-            print(f"Decoder mask: {dec_mask}")
+            decoder_input[i + 1] = next_token_id
 
             if next_token_id == tokenizer.eos_token_id:
                 break
 
-            print(f"Decoder input: {decoder_input_token_ids}")
-
-            dec_mask = (decoder_input_token_ids != pad_token_id).int().unsqueeze(0)
-
-    translation = tokenizer.decode(decoder_input_token_ids, skip_special_tokens=True)
-
-    return translation
+    return tokenizer.decode(decoder_input, skip_special_tokens=True)
 
 
 if __name__ == "__main__":

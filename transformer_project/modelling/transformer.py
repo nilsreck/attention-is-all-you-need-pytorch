@@ -40,6 +40,22 @@ class Transformer(nn.Module):
         )
         self.linear_layer = nn.Linear(d_model, vocab_size)
 
+    def encode(self, src_seq, src_mask):
+        src_emb = self.embedding_layer(src_seq)
+        src_emb = self.positional_encoding(src_emb)
+        encoder_output = src_emb
+        for layer in self.encoder_layers:
+            encoder_output = layer(encoder_output, src_mask)
+        return encoder_output
+
+    def decode(self, tgt_seq, encoder_output, src_mask, tgt_mask):
+        tgt_emb = self.embedding_layer(tgt_seq)
+        tgt_emb = self.positional_encoding(tgt_emb)
+        decoder_output = tgt_emb
+        for layer in self.decoder_layers:
+            decoder_output = layer(decoder_output, encoder_output, src_mask, tgt_mask)
+        return self.linear_layer(decoder_output)
+
     def forward(
         self,
         input,
@@ -47,16 +63,7 @@ class Transformer(nn.Module):
         encoder_attention_mask=None,
         decoder_attention_mask=None,
     ):
-        input = self.embedding_layer(input)
-        input = self.positional_encoding(input)
-        mem = input
-        for layer in self.encoder_layers:
-            mem = layer(mem, encoder_attention_mask)
-
-        output = self.embedding_layer(output)
-        output = self.positional_encoding(output)
-        for layer in self.decoder_layers:
-            output = layer(output, mem, encoder_attention_mask, decoder_attention_mask)
-
-        output = self.linear_layer(output)
-        return output
+        encoder_output = self.encode(input, encoder_attention_mask)
+        return self.decode(
+            output, encoder_output, encoder_attention_mask, decoder_attention_mask
+        )
