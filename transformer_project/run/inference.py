@@ -11,7 +11,7 @@ def load_model(checkpoint_path: str, dim_feedforward: int, device: str, d_model:
         n_heads=8,
         num_decoder_layers=4,
         num_encoder_layers=4,
-        dim_feed_forward=128,
+        dim_feed_forward=dim_feedforward,
         dropout=0.0,
         maxlen=32,
     ).to(device)
@@ -45,7 +45,7 @@ def translate_sentence(model, text: str, tokenizer, device="cuda", max_len=32):
                 decoder_input, encoder_output, encoder_mask, decoder_mask
             )
             next_token = torch.argmax(output, dim=-1)
-            next_token_id = next_token[0, i].item()
+            next_token_id = next_token[0][i].item()
             decoder_input[i + 1] = next_token_id
 
             if next_token_id == tokenizer.eos_token_id:

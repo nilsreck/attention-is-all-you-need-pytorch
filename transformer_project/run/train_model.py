@@ -69,9 +69,9 @@ adamw_optimizer = optim.AdamW(
     weight_decay=1e-2,
 )
 
-criterion = nn.CrossEntropyLoss()
+criterion = nn.CrossEntropyLoss(ignore_index=tokenizer.pad_token_id)
 
-lr_scheduler = LR_Scheduler(adamw_optimizer, d_model=32, warmup_steps=1000)
+lr_scheduler = LR_Scheduler(adamw_optimizer, d_model=32, warmup_steps=200)
 
 
 def train_and_validate(
@@ -117,14 +117,21 @@ def train_and_validate(
             # print(f"preds.shape: {preds.shape}")
             # print(f"Predictions: {preds.argmax(-1)}")
 
-            translation = tokenizer.decode(
-                preds.argmax(-1)[0], skip_special_tokens=True
-            )
-            print(f"Translation: {translation}")
+            # translation = tokenizer.decode(
+            #     preds.argmax(-1)[0], skip_special_tokens=True
+            # )
+            # print(f"Translation: {translation}")
 
             # preds.shape = [batch_size, seq_len, vocab_size]
             # y_batch.shape = [batch_size, seq_len]
 
+            #             print(f"preds.shape: {preds.shape}")
+            #             print(f"preds: {preds}")
+            #             print(f"y_batch.shape: {y_batch.shape}")
+            #             print(f"y_batch: {y_batch}")
+            #             print(f"Preds.view: {(preds.view(-1, vocab_size)).shape}")
+            #             print(f"y_batch.view: {(y_batch.view(-1)).shape}")
+            #
             loss = criterion(preds.view(-1, vocab_size), y_batch.view(-1))
             loss.backward()
             optimizer.step()
