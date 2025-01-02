@@ -21,11 +21,13 @@ class CustomTokenizer:
             "pad_token": "[PAD]",
             "bos_token": "[BOS]",
             "eos_token": "[EOS]",
+            "unk_token": "[UNK]",
         }
 
     def load_and_clean_data(self):
         corpus_path = Path(self.corpus_file)
         cleaned_data_path = corpus_path.parent / "cleaned_dataset.json"
+        os.makedirs(corpus_path.parent, exist_ok=True)
 
         if cleaned_data_path.exists():
             print(f"Loading cached cleaned data from {cleaned_data_path}")
@@ -40,19 +42,23 @@ class CustomTokenizer:
         with open(cleaned_data_path, "w") as f:
             json.dump(cleaned_train_data, f)
 
+        with open(self.corpus_file, "w") as f:
+            for item in cleaned_train_data:
+                f.write(item["de"] + "\n")
+                f.write(item["en"] + "\n")
+
         return cleaned_train_data
 
     def train_tokenizer(self):
         tokenizer = Tokenizer(models.BPE())
         tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=True)
         tokenizer.decoder = decoders.ByteLevel()
-        tokenizer.post_processor = processors.ByteLevel(trim_offsets=True)
 
         trainer = trainers.BpeTrainer(
             vocab_size=self.vocab_size,
             min_frequency=self.min_frequency,
-            initial_alphabet=pre_tokenizers.ByteLevel.alphabet(),
             special_tokens=list(self.special_tokens.values()),
+            show_progress=True,
         )
 
         tokenizer.train([self.corpus_file], trainer=trainer)
@@ -90,8 +96,6 @@ class CustomTokenizer:
     def load_gpt2_tokenizer(self):
         tokenizer = GPT2Tokenizer.from_pretrained(
             "/home/reck/personal/transformer_project/transformer_project/data/tokenizer",
-            vocab_file="/home/reck/personal/transformer_project/transformer_project/data/tokenizer/vocab.json",
-            merges_file="/home/reck/personal/transformer_project/transformer_project/data/tokenizer/merges.txt",
         )
         tokenizer.add_special_tokens(self.special_tokens)
         return tokenizer
@@ -102,7 +106,7 @@ class CustomTokenizer:
         if not os.path.exists(
             "/home/reck/personal/transformer_project/transformer_project/data/tokenizer/vocab.json"
         ) or not os.path.exists(
-            "/home/reck/personal/transformer_project/transformer_project/data/tokeinzer_files/merges.txt"
+            "/home/reck/personal/transformer_project/transformer_project/data/tokenizer/merges.txt"
         ):
             self.train_tokenizer()
             self.convert_to_gpt2_format()
