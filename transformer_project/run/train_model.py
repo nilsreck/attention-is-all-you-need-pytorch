@@ -6,6 +6,9 @@ from torch.utils.data import DataLoader
 import torch.utils.data
 from tqdm import tqdm
 from pathlib import Path
+import evaluate
+import matplotlib.pyplot as plt
+
 
 from transformer_project.modelling.transformer import Transformer
 from transformer_project.data.translation_dataset import TranslationDataset
@@ -14,6 +17,8 @@ from transformer_project.preprocessing.clean_data import load_or_clean_data
 from transformer_project.modelling.huggingface_bpe_tokenizer import CustomTokenizer
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+NUM_EPOCHS = 5
 
 d_model = 64
 dim_feed_forward = 4 * d_model
@@ -26,12 +31,12 @@ model = Transformer(
     num_encoder_layers=4,
     dim_feed_forward=dim_feed_forward,
     dropout=0.0,
-    maxlen=32,
+    maxlen=64,
 ).to(device)
 
 
 cleaned_train = load_or_clean_data("train[:1%]")
-cleaned_val = load_or_clean_data("validation[:10%]")
+cleaned_val = load_or_clean_data("validation")
 
 project_root = Path(__file__).parent.parent.parent
 data_dir = project_root / "data" / "tokenizer"
@@ -71,7 +76,7 @@ adamw_optimizer = optim.AdamW(
 
 criterion = nn.CrossEntropyLoss(ignore_index=tokenizer.pad_token_id)
 
-lr_scheduler = LR_Scheduler(adamw_optimizer, d_model=32, warmup_steps=200)
+lr_scheduler = LR_Scheduler(adamw_optimizer, d_model=d_model, warmup_steps=200)
 
 
 def train_and_validate(
@@ -80,81 +85,116 @@ def train_and_validate(
     val_dataloader,
     optimizer,
     criterion,
+    lr_scheduler,
+    tokenizer,
+    device,
     num_epochs=5,
     vocab_size=50000,
 ):
+    best_val_loss = float("inf")
     train_losses = []
     val_losses = []
-    best_val_loss = float("inf")
 
     for epoch in range(num_epochs):
-        # print("Model's state_dict:")
-        # for param_tensor in model.state_dict():
-        # print(param_tensor, "\t", model.state_dict()[param_tensor].size())
-
+        print(f"\n=== EPOCH {epoch} / {num_epochs} ===")
         model.train()
-        train_loss = 0.0
-        for X_batch, y_batch in tqdm(train_dataloader, desc=f"Training Epoch {epoch}"):
-            X_batch = X_batch.to(device)
-            #  print(f"X_batch.shape: {X_batch.shape}")
-            #  print(f"X_batch: {X_batch}")
-            y_batch = y_batch.to(device)
+        train_loss_total = 0.0
 
-            encoder_attention_mask = (X_batch != tokenizer.pad_token_id).int()
-            decoder_attention_mask = (y_batch != tokenizer.pad_token_id).int()
-            enc_att_mask, dec_att_mask = encoder_attention_mask.to(
-                device
-            ), decoder_attention_mask.to(device)
+        for _, batch in enumerate(
+            tqdm(train_dataloader, desc=f"Training Epoch {epoch}")
+        ):
+            src_input, tgt_input, tgt_output = (
+                batch["source"],
+                batch["target_input"],
+                batch["target_output"],
+            )
+
+            src_input, tgt_input, tgt_output = (
+                src_input.to(device),
+                tgt_input.to(device),
+                tgt_output.to(device),
+            )
+
+            enc_att_mask = (src_input != tokenizer.pad_token_id).int().to(device)
+            dec_att_mask = (tgt_input != tokenizer.pad_token_id).int().to(device)
 
             optimizer.zero_grad()
             preds = model(
-                X_batch,
-                y_batch,
+                src_input,
+                tgt_input,
                 encoder_attention_mask=enc_att_mask,
                 decoder_attention_mask=dec_att_mask,
             )
+            # preds: [batch_size, seq_len, vocab_size]
 
-            # print(f"preds.shape: {preds.shape}")
-            # print(f"Predictions: {preds.argmax(-1)}")
+            loss = criterion(preds.view(-1, vocab_size), tgt_output.view(-1))
 
-            # translation = tokenizer.decode(
-            #     preds.argmax(-1)[0], skip_special_tokens=True
-            # )
-            # print(f"Translation: {translation}")
-
-            # preds.shape = [batch_size, seq_len, vocab_size]
-            # y_batch.shape = [batch_size, seq_len]
-
-            #             print(f"preds.shape: {preds.shape}")
-            #             print(f"preds: {preds}")
-            #             print(f"y_batch.shape: {y_batch.shape}")
-            #             print(f"y_batch: {y_batch}")
-            #             print(f"Preds.view: {(preds.view(-1, vocab_size)).shape}")
-            #             print(f"y_batch.view: {(y_batch.view(-1)).shape}")
-            #
-            loss = criterion(preds.view(-1, vocab_size), y_batch.view(-1))
             loss.backward()
             optimizer.step()
             lr_scheduler.step()
 
-            train_loss += loss.item()
+            train_loss_total += loss.item()
+
+        avg_train_loss = train_loss_total / len(train_dataloader)
+        train_losses.append(avg_train_loss)
 
         model.eval()
-        val_loss = 0.0
+        val_loss_total = 0.0
+        bleu_scores = []
+        bleu = evaluate.load("bleu")
+
+        bleu_predictions = []
+        bleu_references = []
+
         with torch.no_grad():
-            for X_batch, y_batch in tqdm(
-                val_dataloader, desc=f"Validating Epoch {epoch}"
-            ):
-                X_batch = X_batch.to(device)
-                y_batch = y_batch.to(device)
+            for _, batch in enumerate(tqdm(val_dataloader)):
 
-                preds = model(X_batch, y_batch)
-                loss = criterion(preds.view(-1, vocab_size), y_batch.view(-1))
-                val_loss += loss.item()
+                src_input, tgt_input, tgt_output = (
+                    batch["source"],
+                    batch["target_input"],
+                    batch["target_output"],
+                )
 
-        avg_train_loss = train_loss / len(train_dataloader)
-        avg_val_loss = val_loss / len(validation_dataloader)
-        train_losses.append(avg_train_loss)
+                src_input, tgt_input, tgt_output = (
+                    src_input.to(device),
+                    tgt_input.to(device),
+                    tgt_output.to(device),
+                )
+
+                enc_att_mask = (src_input != tokenizer.pad_token_id).int().to(device)
+                dec_att_mask = (tgt_input != tokenizer.pad_token_id).int().to(device)
+
+                optimizer.zero_grad()
+                preds = model(
+                    src_input,
+                    tgt_input,
+                    encoder_attention_mask=enc_att_mask,
+                    decoder_attention_mask=dec_att_mask,
+                )
+                # preds: [batch_size, seq_len, vocab_size]
+
+                loss = criterion(preds.view(-1, vocab_size), tgt_output.view(-1))
+
+                val_loss_total += loss.item()
+
+                batch_predictions = [
+                    tokenizer.decode(seq, skip_special_tokens=True)
+                    for seq in preds.argmax(dim=-1)
+                ]
+                batch_references = [
+                    [tokenizer.decode(ref, skip_special_tokens=True)]
+                    for ref in tgt_output
+                ]
+
+                bleu_predictions.extend(batch_predictions)
+                bleu_references.extend(batch_references)
+
+        bleu_score = bleu.compute(
+            predictions=bleu_predictions, references=bleu_references
+        )
+        bleu_scores.append(bleu_score)
+
+        avg_val_loss = val_loss_total / len(val_dataloader)
         val_losses.append(avg_val_loss)
 
         if avg_val_loss < best_val_loss:
@@ -162,17 +202,30 @@ def train_and_validate(
             torch.save(model.state_dict(), "best_model.pth")
 
         print(
-            f"Epoch {epoch}, Train Loss: {avg_train_loss:.4f}, Val Loss = {avg_val_loss:.4f}"
+            f"Epoch {epoch} => "
+            f"Train Loss: {avg_train_loss:.4f}, Val Loss: {avg_val_loss:.4f}"
         )
 
-    return train_losses, val_losses
+    return train_losses, val_losses, bleu_scores
 
 
-train_losses, val_losses = train_and_validate(
+train_losses, val_losses, bleu_scores = train_and_validate(
     model=model,
     train_dataloader=train_dataloader,
     val_dataloader=validation_dataloader,
     optimizer=adamw_optimizer,
     criterion=criterion,
+    lr_scheduler=lr_scheduler,
+    tokenizer=tokenizer,
+    device=device,
+    num_epochs=5,
     vocab_size=50000,
 )
+
+training_steps = [range(NUM_EPOCHS)]
+plt.plot(training_steps, bleu_scores, marker="o")
+plt.xlabel("Training Steps")
+plt.ylabel("BLEU Score")
+plt.title("BLEU Score vs Training Steps")
+plt.grid(True)
+plt.show()
