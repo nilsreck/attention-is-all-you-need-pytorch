@@ -48,7 +48,7 @@ class Transformer(nn.Module):
             encoder_output = layer(encoder_output, src_mask)
         return encoder_output
 
-    def decode(self, tgt_seq, encoder_output, src_mask, tgt_mask):
+    def decode(self, tgt_seq, encoder_output, src_mask, tgt_mask=None):
         tgt_emb = self.embedding_layer(tgt_seq)
         tgt_emb = self.positional_encoding(tgt_emb)
         decoder_output = tgt_emb

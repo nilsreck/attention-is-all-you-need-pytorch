@@ -13,7 +13,7 @@ def load_model(checkpoint_path: str, dim_feedforward: int, device: str, d_model:
         num_encoder_layers=4,
         dim_feed_forward=dim_feedforward,
         dropout=0.0,
-        maxlen=32,
+        maxlen=64,
     ).to(device)
 
     model.load_state_dict(torch.load(checkpoint_path))
@@ -32,26 +32,22 @@ def translate_sentence(model, text: str, tokenizer, device="cuda", max_len=32):
     with torch.no_grad():
         src_seq = tokenizer.encode(text, return_tensors="pt").to(device)
         encoder_mask = (src_seq != pad_token_id).int()
-
         encoder_output = model.encode(src_seq, encoder_mask)
 
-        decoder_input = torch.tensor(
-            [bos_token_id] + [pad_token_id] * (max_len - 1)
-        ).to(device)
+        init_dec_input = torch.tensor([[bos_token_id]], device=device)
 
-        for i in range(max_len - 1):
-            decoder_mask = (decoder_input != pad_token_id).int().unsqueeze(0)
-            output = model.decode(
-                decoder_input, encoder_output, encoder_mask, decoder_mask
-            )
-            next_token = torch.argmax(output, dim=-1)
-            next_token_id = next_token[0][i].item()
-            decoder_input[i + 1] = next_token_id
+        for _ in range(2, max_len - 1):
+            output = model.decode(init_dec_input, encoder_output, encoder_mask)
+            print(f"Output.shape: {output.shape}")
+            next_token = torch.argmax(output[:, -1, :], dim=-1)
 
-            if next_token_id == tokenizer.eos_token_id:
+            init_dec_input = torch.cat([init_dec_input, next_token.unsqueeze(1)], dim=1)
+            print(f"Decoder input: {init_dec_input}")
+
+            if next_token.item() == tokenizer.eos_token_id:
                 break
 
-    return tokenizer.decode(decoder_input, skip_special_tokens=True)
+    return tokenizer.decode(init_dec_input[0], skip_special_tokens=True)
 
 
 if __name__ == "__main__":
@@ -67,7 +63,6 @@ if __name__ == "__main__":
     print(f"Tokenizer vocab size: {tokenizer.vocab_size}")
 
     cleaned_test_data = load_or_clean_data("test[:1%]")
-    text = "Und damit endete die Reitkarriere dann auch schon wieder."
+    text = "wer hat das huhn gegessen?"
     translation = translate_sentence(model, text, tokenizer, device)
-    print(f"Input: {text}")
     print(f"Translation: {translation}")
