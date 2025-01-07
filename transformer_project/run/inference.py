@@ -36,7 +36,7 @@ def translate_sentence(model, text: str, tokenizer, device="cuda", max_len=32):
 
         init_dec_input = torch.tensor([[bos_token_id]], device=device)
 
-        for _ in range(2, max_len - 1):
+        for _ in range(1, max_len - 1):
             output = model.decode(init_dec_input, encoder_output, encoder_mask)
             print(f"Output.shape: {output.shape}")
             next_token = torch.argmax(output[:, -1, :], dim=-1)
@@ -63,6 +63,8 @@ if __name__ == "__main__":
     print(f"Tokenizer vocab size: {tokenizer.vocab_size}")
 
     cleaned_test_data = load_or_clean_data("test[:1%]")
-    text = "wer hat das huhn gegessen?"
+    text = (
+        "das verhältnis zwischen obama und netanyahu ist nicht gerade freundschaftlich."
+    )
     translation = translate_sentence(model, text, tokenizer, device)
     print(f"Translation: {translation}")

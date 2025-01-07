@@ -99,15 +99,16 @@ def train_and_validate(
     lr_scheduler,
     tokenizer,
     device,
-    num_epochs=5,
+    num_epochs=NUM_EPOCHS,
     vocab_size=50000,
 ):
     best_val_loss = float("inf")
     train_losses = []
     val_losses = []
+    bleu_scores = []
 
     for epoch in range(num_epochs):
-        print(f"\n=== EPOCH {epoch} / {num_epochs} ===")
+        print(f"\n=== EPOCH {epoch + 1} / {num_epochs} ===")
         model.train()
         train_loss_total = 0.0
 
@@ -204,7 +205,9 @@ def train_and_validate(
         bleu_score = bleu.compute(
             predictions=bleu_predictions, references=bleu_references
         )
-        bleu_scores.append(bleu_score)
+        print(f"BLEU Score: {bleu_score}")
+        bleu_scores.append(bleu_score["bleu"])
+        print(f"BLEU Scores: {bleu_scores}")
 
         avg_val_loss = val_loss_total / len(val_dataloader)
         val_losses.append(avg_val_loss)
@@ -224,20 +227,20 @@ def train_and_validate(
 train_losses, val_losses, bleu_scores = train_and_validate(
     model=model,
     train_dataloader=train_dataloader,
-    val_dataloader=validation_dataloader,
-    optimizer=adamw_optimizer,
+    val_dataloader=train_dataloader,
+    optimizer=optimizer,
     criterion=criterion,
     lr_scheduler=lr_scheduler,
     tokenizer=tokenizer,
-    device=device,
-    num_epochs=5,
+    device=DEVICE,
+    num_epochs=NUM_EPOCHS,
     vocab_size=50000,
 )
 
-training_steps = [range(NUM_EPOCHS)]
+training_steps = list(range(NUM_EPOCHS))
 plt.plot(training_steps, bleu_scores, marker="o")
 plt.xlabel("Training Steps")
 plt.ylabel("BLEU Score")
 plt.title("BLEU Score vs Training Steps")
 plt.grid(True)
-plt.show()
+plt.savefig("bleu_score_plot.png")
