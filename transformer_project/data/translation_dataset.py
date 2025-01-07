@@ -1,6 +1,8 @@
 import torch
 from torch.utils.data import Dataset
 
+MAX_LEN = 64
+
 
 class TranslationDataset(Dataset):
     def __init__(
@@ -8,12 +10,24 @@ class TranslationDataset(Dataset):
         dataset,
         tokenizer,
         transform=None,
-        max_len=64,
+        max_len=MAX_LEN,
     ):
-        self.dataset = dataset
         self.tokenizer = tokenizer
         self.transform = transform
         self.max_len = max_len
+
+        self.valid_indices = []
+        for idx in range(len(dataset)):
+            source_ids = tokenizer.encode(
+                dataset[idx]["de"], add_special_tokens=False, truncation=False
+            )
+            target_ids = tokenizer.encode(
+                dataset[idx]["en"], add_special_tokens=False, truncation=False
+            )
+            if len(source_ids) <= max_len and len(target_ids) <= max_len:
+                self.valid_indices.append(idx)
+
+        self.dataset = [dataset[i] for i in self.valid_indices]
 
     def __len__(self):
         return len(self.dataset)
