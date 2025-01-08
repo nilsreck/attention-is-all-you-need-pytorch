@@ -16,11 +16,11 @@ from transformer_project.modelling.lr_scheduler import LR_Scheduler
 from transformer_project.preprocessing.clean_data import load_or_clean_data
 from transformer_project.modelling.huggingface_bpe_tokenizer import CustomTokenizer
 
-BATCH_SIZE = 1
-NUM_EPOCHS = 30
+BATCH_SIZE = 32
+NUM_EPOCHS = 5
 NUM_ENCODER_LAYERS = 4
 NUM_DECODER_LAYERS = 4
-NUM_HEADS = 2
+NUM_HEADS = 8
 D_MODEL = 64
 DIM_FEED_FORWARD = 4 * D_MODEL
 DROPOUT = 0.0
@@ -43,27 +43,24 @@ model = Transformer(
 ).to(DEVICE)
 
 
-cleaned_train = load_or_clean_data("train[:2]")
-cleaned_val = load_or_clean_data("validation")
+cleaned_train = load_or_clean_data("train[:10%]")
+cleaned_val = load_or_clean_data("validation[:50%]")
 
 project_root = Path(__file__).parent.parent.parent
 data_dir = project_root / "data" / "tokenizer"
 
-custom_tokenizer = CustomTokenizer(
+tokenizer = CustomTokenizer(
     vocab_size=VOCAB_SIZE,
     corpus_file=str(data_dir / "byte-level-bpe_wmt17.tokenizer.json"),
-)
-tokenizer = custom_tokenizer.load_gpt2_tokenizer()
+).load_gpt2_tokenizer()
 
 train_dataset = TranslationDataset(cleaned_train, tokenizer=tokenizer)
-validation_dataset = TranslationDataset(cleaned_val, tokenizer=tokenizer)
+val_dataset = TranslationDataset(cleaned_val, tokenizer=tokenizer)
 # test_dataset = TranslationDataset(dataset["test"], tokenizer=tokenizer)
 
 
 train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-validation_dataloader = DataLoader(
-    validation_dataset, batch_size=BATCH_SIZE, shuffle=False
-)
+val_dataloader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 # test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
 params_with_decay = []
@@ -129,6 +126,7 @@ def train_and_validate(
                 tgt_input.to(DEVICE),
                 tgt_output.to(DEVICE),
             )
+            print(f"tgt_input shape: {tgt_input.shape}")
 
             enc_att_mask = (src_input != tokenizer.pad_token_id).int().to(DEVICE)
             dec_att_mask = (tgt_input != tokenizer.pad_token_id).int().to(DEVICE)
@@ -178,6 +176,7 @@ def train_and_validate(
                 enc_att_mask = (src_input != tokenizer.pad_token_id).int().to(DEVICE)
                 dec_att_mask = (tgt_input != tokenizer.pad_token_id).int().to(DEVICE)
 
+                # TODO: remove teacher forcing
                 preds = model(
                     src_input,
                     tgt_input,
@@ -227,7 +226,7 @@ def train_and_validate(
 train_losses, val_losses, bleu_scores = train_and_validate(
     model=model,
     train_dataloader=train_dataloader,
-    val_dataloader=train_dataloader,
+    val_dataloader=val_dataloader,
     optimizer=optimizer,
     criterion=criterion,
     lr_scheduler=lr_scheduler,
@@ -243,4 +242,4 @@ plt.xlabel("Training Steps")
 plt.ylabel("BLEU Score")
 plt.title("BLEU Score vs Training Steps")
 plt.grid(True)
-plt.savefig("bleu_score_plot.png")
+plt.savefig("bleu_score_val.png")
