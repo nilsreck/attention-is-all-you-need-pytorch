@@ -3,6 +3,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 import evaluate
 import matplotlib.pyplot as plt
+import itertools
 from transformer_project.modelling.transformer import Transformer
 from transformer_project.data.translation_dataset import TranslationDataset
 from transformer_project.preprocessing.clean_data import load_or_clean_data
@@ -53,27 +54,17 @@ def translate(model, src_seq, tokenizer, device="cuda", max_len=64):
         ).repeat(
             BATCH_SIZE, 1
         )  # [batch_size, seq_length]
-        print(f"dec input: {init_dec_input}")
-        dec_att_mask = (init_dec_input != tokenizer.pad_token_id).int().to(DEVICE)
 
         eos_generated = torch.zeros(src_seq.size(0), dtype=torch.bool, device=device)
 
         for i in range(1, max_len - 1):
-            dec_att_mask = (init_dec_input != tokenizer.pad_token_id).int().to(DEVICE)
-            print(f"src seq dims: {src_seq.shape}")
             output = model(
-                src_seq, init_dec_input, enc_mask, dec_att_mask
+                src_seq, init_dec_input, enc_mask
             )  # [batch_size, seq_length, vocab_size]
-            print(f"output.shape = {output.shape}")
-            next_tokens = torch.argmax(output[:, i, :], dim=-1)  # [batch_size]
-            print(f"next_tokens: {next_tokens}")
-            print(f"next_tokens.shape: {next_tokens.shape}")
+            next_tokens = torch.argmax(output[:, i - 1, :], dim=-1)  # [batch_size]
 
             init_dec_input[:, i] = torch.where(eos_generated, pad_token_id, next_tokens)
-            print(f"next_token.shape: {next_tokens.shape}")
-
             eos_generated |= next_tokens == tokenizer.eos_token_id
-            print(f"init_dec_input.shape = {init_dec_input}")
 
             if eos_generated.all():
                 break
@@ -97,7 +88,7 @@ if __name__ == "__main__":
     translations = []
     references = []
 
-    for batch in iterator:
+    for batch in itertools.islice(iterator, len(iterator) - 1):
         batch = {k: v.to(DEVICE) for k, v in batch.items()}
 
         src_seq = batch["source"]
