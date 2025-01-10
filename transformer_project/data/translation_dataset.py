@@ -70,7 +70,8 @@ class TranslationDataset(Dataset):
 
         last_token_idx = (encoded_target_full != 0).nonzero()[-1]
         target_output = encoded_target_full.clone()
-        target_output[last_token_idx + 1] = eos_token_id
+        if last_token_idx <= MAX_LEN - 2:
+            target_output[last_token_idx + 1] = eos_token_id
 
         if self.transform:
             encoded_source = self.transform(encoded_source)
