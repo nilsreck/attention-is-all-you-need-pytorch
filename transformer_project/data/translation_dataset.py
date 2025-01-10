@@ -57,10 +57,20 @@ class TranslationDataset(Dataset):
             )
         )
 
-        encoder_target_input = torch.cat([torch.tensor([bos_token_id]), encoded_target])
-        encoder_target_output = torch.cat(
-            [encoded_target, torch.tensor([eos_token_id])]
+        encoded_target_full = torch.tensor(
+            self.tokenizer.encode(
+                target_text,
+                max_length=self.max_len,
+                padding="max_length",
+                truncation=True,
+            )
         )
+
+        encoder_target_input = torch.cat([torch.tensor([bos_token_id]), encoded_target])
+
+        last_token_idx = (encoded_target_full != 0).nonzero()[-1]
+        target_output = encoded_target_full.clone()
+        target_output[last_token_idx + 1] = eos_token_id
 
         if self.transform:
             encoded_source = self.transform(encoded_source)
@@ -69,5 +79,5 @@ class TranslationDataset(Dataset):
         return {
             "source": encoded_source,
             "target_input": encoder_target_input,
-            "target_output": encoder_target_output,
+            "target_output": target_output,
         }
