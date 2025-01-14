@@ -126,7 +126,6 @@ def train_and_validate(
                 tgt_input.to(DEVICE),
                 tgt_output.to(DEVICE),
             )
-            print(f"tgt_input shape: {tgt_input.shape}")
 
             enc_att_mask = (src_input != tokenizer.pad_token_id).int().to(DEVICE)
             dec_att_mask = (tgt_input != tokenizer.pad_token_id).int().to(DEVICE)

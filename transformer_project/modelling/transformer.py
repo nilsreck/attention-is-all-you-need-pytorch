@@ -1,3 +1,4 @@
+import torch
 from torch import nn
 
 from transformer_project.modelling.functional import (
@@ -54,7 +55,9 @@ class Transformer(nn.Module):
         decoder_output = tgt_emb
         for layer in self.decoder_layers:
             decoder_output = layer(decoder_output, encoder_output, src_mask, tgt_mask)
-        return self.linear_layer(decoder_output)
+        # paramter sharing
+        output_logits = decoder_output @ self.embedding_layer.weight.transpose(0, 1)
+        return output_logits
 
     def forward(
         self,
