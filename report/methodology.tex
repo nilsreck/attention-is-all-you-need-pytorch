@@ -1,0 +1,91 @@
+\section{Methodology} The Transformer mainly consists of two principal components, the encoder and decoder.
+While both process and transform input data, the encoder focuses on generating a context-rich representation of the input sequence, whereas the decoder uses this representation to generate the target sequence step by step.
+However, before the model can process the input data, it has to be encoded in a numerical representation that the model can interpret.
+For this, a shared tokenizer is trained over the source and target sequences, which maps a token (a word or subword) of a sequence to a number and vice versa. 
+
+\todo[inline]{add info about alignment of sequences (maybe add to training section)}
+
+\subsection{Embedding Layers} 
+The embedding layer creates a \texttt{$d_{model}$}-dimensional vector representation for each encoded token of the input and target sequence. 
+Unlike recurrent architectures, which process sequences step by step, the Transformer processes entire sequences in parallel. 
+To compensate for the lack of sequence order awareness, the positional encoding layer enriches the representations with positional information. \\
+Cosistent with the original Transfromer architecture, we apply parameter sharing by using the same set of weights for both embedding layers and the pre-softmax linear transformation. This technique has shown to improve efficiency and model performance~\cite{press2017usingoutputembeddingimprove}.
+Sharing parameters between the encoder and decoder embedding layers offers several advantages.
+First, it can significantly reduce the model size while maintaining model performance.
+Second, parmeter sharing reduces the degrees of freedom of the model, thus implicitly applying regularization by forcing different parts of the model to use the same parameters, preventing the model from overfitting.
+Additionally, the efficiency of the model improves because shared parameters allow for faster updates and fewer memory operations.
+Finally, by tying the input and output embeddings together, the model can enhance cross-lingual transfer learning, as aligned word representations across languages make it easier to generalize.
+
+\subsection{Encoder Stack} 
+The encoder is composed of six identical layers, each designed to transform the input sequence into a context-rich representation.
+Each layer consists of two sub-layers: a multi-head self-attention mechanism and a position-wise feed-forward network.
+To stabilize training and improve gradient flow, a residual connection~\cite{he2015deepresiduallearningimage} and layer normalization~\cite{ba2016layernormalization} are applied after each sub-layer.
+Residual connections, defined by \(x + f(x)\), help keep the original signal in the data intact while still being able to add important properties in the form of features (output from multi-head attention or feed-forward networks). Additionally, during backpropagation, we alleviate the problem of vanishing gradients because we add back the original signal and the signal is kept alive. Even if a block does not learn anything (\(g(\mathbf{x}) = 0\), where all weights and biases are pushed to zero), the original signal is kept intact. Lastly, using the residual connection, the underlying attention or feed-forward layer only needs to learn the function \(g(\mathbf{x})=f(\mathbf{x})-\mathbf{x}\) (called residual mapping). It has a less complex shape than learning \(f(\mathbf{x})\) from scratch. If the desired function is close to the identity function (\(f(\mathbf{x}) \approx \mathbf{x}\)), \(g(\mathbf{x}) = f(\mathbf{x}) - \mathbf{x}\) becomes small and easier to learn. This naturally evokes the question of why a network would want to learn a function that is (close to) the identity function. The answer is that residual blocks act as refinement units, slightly refining existing features instead of learning full (high variance) functions from scratch. It also mitigates the risk of overfitting: If \(f(\mathbf{x})\) is far from \(\mathbf{x}\), the layer needs to learn complex transformations. By focussing on small residuals \(g(\mathbf{x}) = f(\mathbf{x}) - \mathbf{x}\), the network increases the chance of generalizing better to unseen data. However, even when \(f(\mathbf{x})\) is far from \(\mathbf{x}\), it still provides a fallback for easier gradient flow.
+In the backward pass, if you have multiple rank-deficient matrices, your rank becomes even lower
+because the composition of rank-deficient matrices leads to a further reduction in the rank, potentially causing the gradients to vanish or lose critical information needed for effective weight updates.
+
+This is the corresponding paper: \cite{he2015deepresiduallearningimage}.
+\subsection{Decoder Stack} 
+The decoder also consists of six identical layers.
+In addition to the two sub-layers of the encoder, it has a second multi-head attention mechanism over the outputs of the encoder.
+According to the encoder, residual connections and layer normalization are employed after each sub-layer.
+In contrast to the multi-head self-attention layer in the encoder, the inputs to the attention mechanism in the decoder are masked such that the decoder cannot attend to future tokens.
+This prevents the decoder from cheating by attending to tokens it has not yet seen.
+Finally, the output of the decoder undergoes a linear transformation. After that, softmax is applied to convert the output into probabilities to predict the next token.
+
+
+% why position? Understand embeddings of the input. Add how the heads are
+% concatenated in attention
+\subsection{Attention} 
+\todo[inline]{Explain how multiple atttention heads help}
+It expands the model’s ability to focus on different positions.
+Yes, in the example above, z1 contains a little bit of every other encoding, but it could be dominated by the actual word itself.
+If we’re translating a sentence like “The animal didn’t cross the street because it was too tired”, it would be useful to know which word “it” refers to.
+
+\subsection{Position-wise Feed-Forward Layer}
+% layer normalization where? Write down the equation for the layer
+% normalization layer and provide an explanation of the function of this layer
+% in a transformer model. My question: Why is it important to use two
+% independent layer normalization layers following multi-head self-attention
+% layer and the position-wise feed-forward layer? Explain the benefits of
+% parameter sharing in the transformer model.
+
+\begin{center}
+\begin{tikzpicture}[
+		>={Stealth[round]}, % Arrow style
+		node distance=2.5cm, % Distance between nodes
+		every node/.style={draw, rounded corners, minimum width=2.5cm, minimum height=1.2cm, font=\small}
+	]
+			
+	% Input node
+	\node[draw=none] (input) {$x_i$};
+			
+	% Linear layer nodes
+	\node[right=1cm of input] (K) {$W_K \cdot x_i + b_K$};
+	\node[above=0.8cm of K] (Q) {$W_Q \cdot x_i + b_Q$};
+	\node[below=0.8cm of K] (V) {$W_V \cdot x_i + b_V$};
+			
+	% Connect input to each linear layer
+	\draw[->] (input.east) |- (Q.west);
+	\draw[->] (input.east) |- (K.west);
+	\draw[->] (input.east) |- (V.west);
+			
+	% Label nodes
+	\node[below=0.2cm of V, draw=none] (labels) {Three parallel linear transformations};
+			
+	% Concatenate box with vertical text
+	\node[draw, right=1cm of K, minimum width=1.2cm, minimum height=4cm, align=center] (concatBox) {Concatenate};
+			
+	% Connect linear layers to the concatenate box
+	\draw[->] (Q.east) -- ++(0.4,0) |- (concatBox.west);
+	\draw[->] (K.east) -- ++(0.4,0) |- (concatBox.west);
+	\draw[->] (V.east) -- ++(0.4,0) |- (concatBox.west);
+			
+	% Dashed QKV outputs box centered vertically with Concatenate box
+	\node[draw, dashed, right=1cm of concatBox, minimum width=2.5cm, minimum height=1.2cm, font=\small] (QKVBox) {Q, K, V outputs};
+			
+	% Arrow to QKV outputs
+	\draw[->, dashed] (concatBox.east) -- (QKVBox.west);
+			
+\end{tikzpicture}
+\end{center}

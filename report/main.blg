@@ -1,0 +1,48 @@
+This is BibTeX, Version 0.99d (TeX Live 2024)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: main.aux
+The style file: alpha.bst
+Database file #1: references.bib
+Warning--I didn't find a database entry for "vaswani2023attentionneed"
+You've used 3 entries,
+            2543 wiz_defined-function locations,
+            571 strings with 4818 characters,
+and the built_in function-call counts, 1090 in all, are:
+= -- 96
+> -- 75
+< -- 0
++ -- 27
+- -- 27
+* -- 70
+:= -- 191
+add.period$ -- 6
+call.type$ -- 3
+change.case$ -- 21
+chr.to.int$ -- 3
+cite$ -- 3
+duplicate$ -- 30
+empty$ -- 76
+format.name$ -- 30
+if$ -- 215
+int.to.chr$ -- 1
+int.to.str$ -- 0
+missing$ -- 0
+newline$ -- 15
+num.names$ -- 9
+pop$ -- 33
+preamble$ -- 1
+purify$ -- 24
+quote$ -- 0
+skip$ -- 40
+stack$ -- 0
+substring$ -- 21
+swap$ -- 3
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 24
+warning$ -- 0
+while$ -- 9
+width$ -- 5
+write$ -- 32
+(There was 1 warning)

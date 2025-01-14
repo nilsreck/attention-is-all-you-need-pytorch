@@ -1,0 +1,139 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage{bm}
+\usepackage{todonotes}
+\usepackage{tikz}
+\usepackage{hyperref}
+\usepackage[english,capitalize,noabbrev]{cleveref}
+\usetikzlibrary{positioning, arrows.meta}
+
+
+\title{Implementing Transformer Models \\
+       Project Report
+      }
+\author{Nils Reck}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\input{introduction}
+\input{methodology}
+\input{optimization}
+\input{training}
+\input{results}
+
+\begin{enumerate}
+	\item Make sure you understand the embeddings of the input. Explain why we need the position of input characters in the embedding.
+	\item Make sure you understand the role of the two different masks in the attention mechanism. Explain the role of each mask in your own words.
+	\item The model starts with a Query (Q) for the current position. For example, if the model predicts the next token for the word "cat", the Query is derived from the representation of "cat".
+\end{enumerate}
+
+\section{Questions}
+\subsection{Practical 4}
+\begin{enumerate}
+	\item Which dimension do the word embeddings need to have?
+	\item Why do values have a different dimension \(d_v\), compared to queries and keys \(d_k \), wrt the linear projection in mha?
+    \item How does the model differentiate between embedding and positional encoding?
+\end{enumerate}
+\subsection{Practical 5}
+\begin{enumerate}
+	\item Why is it called encoder/decoder?
+\end{enumerate}
+\begin{enumerate}
+	\item Do we put the tokenizer in the \lstinline{TranslationDataset} class?
+	\item What is the word embedding dimension?
+\end{enumerate}
+
+\section{Positional Encoding}
+
+\section{Encoder}
+\begin{enumerate}
+	\item What is the input to where the multiplication with the qkv-matrix happens? A: The embedding matrix
+	\item What does the fully connected layer look like?
+\end{enumerate}
+
+\section{Position-Wise Feed-Forward Networks}
+
+\begin{equation}
+	\text{FFN}(x) = \max(0, xW_1 + b_1)W_2 + b_2
+\end{equation}
+
+The FNN introduces a higher-dimensional space to explore combinations of features present in the token embeddings that it could not explore in the original embedding space. That happens by the first linear transformation \(xW_1 + b_1\). Next, ReLU, \(\max(0, xW_1 + b_1)\) introduces non-linearity (why does that help?) and helps prevent vanishing gradients (how?). The FFN has two linear layers of size \(\left(d_{\text{model}}, d_{\text{ffn}}\right)\) and \(\left(d_{\text{ffn}}, d_{\text{model}}\right)\), respecetively.
+Finally, the non-linearly transformed representation is projected back into the original space, \(d_{\text{model}}\), such that it (what is it?) is forced to focus on the most significant feature combinations (bring examples).
+
+\section{Normalization Layer}
+Layer normalization is applied after each self-attention and feed-forward sublayer.
+
+\begin{equation}
+	\text{LayerNorm}(x) = \frac{x - \mu}{\sigma} \cdot \gamma + \beta
+\end{equation}
+
+Where \(x\) is the input vector, in our case the token embedding, \(\mu\) the mean of \(x\), calculated across the features, \(\sigma\) is the standard deviation, also calculated across the features:
+
+\begin{align}
+	\mu^l = \frac{1}{H} \sum_{i=1}^H a_i^l &   & \sigma^l = \sqrt{\frac{1}{H}\sum_{i=1}^H (a_i^l - \mu^l)^2} 
+\end{align}
+
+\(H\) is the number of features for each token representation, \(\gamma\) and \(\beta\) are optional, learnable parameters to scale and shift the normalized values. \\
+In a transformer architecture, the layer normalization layer serves different purposes: it stabilizes training by normalizing the distributions of the layer inputs, thus preventing exploding or vanishing gradients, which would also have adverse, covariate effects on the surrounding layers in the forward and backward passes.
+Additionally, contrary to batch normalization, layer normalization handles variations in sequence length better, since it computes the mean and variance along the features of the token and not across the individual features across the batch.
+
+\todo[inline]{Cite Layer Normalization paper}
+
+\section{Optimizer Initialization}
+\subsection{\texttt{AdamW}}
+Both, in Adam and AdamW, \cref{eq:mean_var} shows that the learning rate is adjusted for each parameter independently based on the history of gradients. The running averages, \(m_{t-1}\) and \(v_{t-1}\), make it possible to include the history of the gradients in the calculation of the first and second moment:
+
+% Equation 1: First moment estimate
+\begin{equation}
+\label{eq:mean_var}
+m_t = \beta_1 m_{t-1} + (1 - \beta_1) g_t \text{,} \quad v_t = \beta_2 v_{t-1} + (1 - \beta_2) g_t^2
+\end{equation}
+\\
+The calculation of the first and second moment in this fashion ensures that parameters with larger gradient variances are updated more slowly than those with larger gradient variances to stabilize the optimization process. \\
+The bias correction from \cref{eq:moments} is important because, without it, the first and second moments are biased toward zero at early timesteps, because \(m_0\) and \(v_0\) are zero. Consequently, this results in overly careful parameter updates in the beginning, which hinder the performance and convergence of the training process. \\
+% Equation 3: Bias-corrected moments
+\begin{equation}
+\hat{m}_t = \frac{m_t}{1 - \beta_1^t} \text{,} \quad \hat{v}_t = \frac{v_t}{1 - \beta_2^t}
+\label{eq:moments}
+\end{equation}
+\\
+In the original Adam, weight decay is added directly to the gradient. Consequently, this means that the weight decay term is included in the moment estimates (\(m_t\) and \(v_t\)). The AdamW optimizer circumvents this problem: The weight decay is applied directly to the weights after the adaptive gradient update, as shown in \cref{eq:weight_decay}:
+% Equation 5: Weight decay
+\begin{equation}
+\label{eq:weight_decay}
+\theta_t \leftarrow \theta_t - \eta \lambda \theta_t
+\end{equation}
+\\
+\cref{eq:update} shows the complete parameter update for the AdamW optimizer, where the weight decay is decoupled from the gradient calculation.
+% Equation 6: Parameter update
+\begin{equation}
+\label{eq:update}
+\theta_{t+1} = \theta_t - \eta \left( \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} \right) - \eta \lambda \theta_t
+\end{equation}
+
+\clearpage
+
+\todo[inline]{Where do we apply dropout?}
+\todo[inline]{What are learnable parameters in a transformer model?}
+\todo[inline]{Inclued questions from tests}
+
+\clearpage
+
+\includegraphics[width=\textwidth]{figures/learnable_params.png}
+
+
+\clearpage
+\bibliography{references}
+%% Depending on Language, use German alphadin or original alpha
+\iflanguage{ngerman}{
+  \bibliographystyle{alphadin}
+}{
+  \bibliographystyle{alpha}
+}
+
+\end{document}

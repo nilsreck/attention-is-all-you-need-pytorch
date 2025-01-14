@@ -1,0 +1,15 @@
+\begin{thebibliography}{HZRS15}
+
+\bibitem[BKH16]{ba2016layernormalization}
+Jimmy~Lei Ba, Jamie~Ryan Kiros, and Geoffrey~E. Hinton.
+\newblock Layer normalization, 2016.
+
+\bibitem[HZRS15]{he2015deepresiduallearningimage}
+Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun.
+\newblock Deep residual learning for image recognition, 2015.
+
+\bibitem[PW17]{press2017usingoutputembeddingimprove}
+Ofir Press and Lior Wolf.
+\newblock Using the output embedding to improve language models, 2017.
+
+\end{thebibliography}
