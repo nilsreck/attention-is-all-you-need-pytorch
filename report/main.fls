@@ -317,11 +317,6 @@ INPUT ./results.tex
 INPUT ./results.tex
 INPUT results.tex
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmtt12.tfm
-INPUT ./figures/learnable_params.png
-INPUT ./figures/learnable_params.png
-INPUT ./figures/learnable_params.png
-INPUT ./figures/learnable_params.png
-INPUT ./figures/learnable_params.png
 INPUT ./main.bbl
 INPUT ./main.bbl
 INPUT main.bbl

@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex main"] 1736927012.76075 "main.aux" "main.bbl" "main" 1736927013.63303 0
+["bibtex main"] 1737106196.89975 "main.aux" "main.bbl" "main" 1737106197.6972 0
   "./references.bib" 1736845174.21071 2009 bb1c33bbc13333a08bf153fb434d4ddb ""
   "/home/reck/.TinyTeX/texmf-dist/bibtex/bst/base/alpha.bst" 1292289607 23907 a5f93555796fb564b924339521f10a7c ""
-  "main.aux" 1736927013.54186 4967 8e830245cdcba68ab822552254aa8b9c "pdflatex"
+  "main.aux" 1737106197.62591 4967 d014ab8baac7c81e01f3c8ecf3ce1ec3 "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1736927012.77196 "main.tex" "main.pdf" "main" 1736927013.63325 0
+["pdflatex"] 1737106196.92735 "main.tex" "main.pdf" "main" 1737106197.69737 0
   "/etc/texmf/web2c/texmf.cnf" 1721304888.24332 475 c0e671620eb5563b2130f56340a5fde8 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmbsy5.tfm" 1246382020 1120 1e8878807317373affa7f7bba4cf2f6a ""
@@ -192,12 +192,11 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1707919699 40399 f2c302f7d2af602abb742093540a5834 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1736588527.23258 5472669 54eaf61a88b6b7896ebd0dac973cb29c ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1736588585 8214746 3a44ccb62f00a9ccdcb52a0c27ce23d7 ""
-  "figures/learnable_params.png" 1736582638 50498 9602f7b9afdcfb31f60f887aa9103284 ""
   "introduction.tex" 1736681094.05807 1051 030f57a29d5d577c4d13e1dba6011a9b ""
-  "main.aux" 1736927013.54186 4967 8e830245cdcba68ab822552254aa8b9c "pdflatex"
-  "main.bbl" 1736927012.76686 510 e8e376eff7bccfb7831a266f30e44a31 "bibtex main"
-  "main.out" 1736927013.54286 2684 a6e86505eaccc8dd6c36ac0286af684a "pdflatex"
-  "main.tex" 1736755169.23388 6698 96a0dd58985f5a4a34b33e75a6a1a6c8 ""
+  "main.aux" 1737106197.62591 4967 d014ab8baac7c81e01f3c8ecf3ce1ec3 "pdflatex"
+  "main.bbl" 1737106196.91789 510 e8e376eff7bccfb7831a266f30e44a31 "bibtex main"
+  "main.out" 1737106197.62591 2684 a6e86505eaccc8dd6c36ac0286af684a "pdflatex"
+  "main.tex" 1737106193.86282 6633 9944c7d2b8279e66f42400e0eb4529b6 ""
   "methodology.tex" 1736927011.37786 6997 ed5b85d8bdc6bce46d9dda0406900409 ""
   "optimization.tex" 1736596916.96107 243 44b20fe995ce71a91f27c80cb3fbce12 ""
   "results.tex" 1736582638 17 e5aa29df4c37f93cdad04a47e60f71d0 ""
