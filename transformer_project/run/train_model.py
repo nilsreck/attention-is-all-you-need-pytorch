@@ -8,6 +8,8 @@ from tqdm import tqdm
 from pathlib import Path
 import evaluate
 import matplotlib.pyplot as plt
+import time
+import json
 
 
 from transformer_project.modelling.transformer import Transformer
@@ -31,6 +33,7 @@ VOCAB_SIZE = 50000
 LEARNING_RATE = 1e-3
 WEIGHT_DECAY = 1e-2
 WARMUP_STEPS = 1
+DROPOUT = 0.1
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 model = Transformer(
@@ -45,8 +48,8 @@ model = Transformer(
 ).to(DEVICE)
 
 
-cleaned_train = load_or_clean_data("train[:10%]")
-cleaned_val = load_or_clean_data("validation[:50%]")
+cleaned_train = load_or_clean_data("train[:1%]")
+cleaned_val = load_or_clean_data("validation[:160]")
 
 project_root = Path(__file__).parent.parent.parent
 data_dir = project_root / "data" / "tokenizer"
@@ -107,11 +110,20 @@ def train_and_validate(
     train_losses = []
     val_losses = []
     bleu_scores = []
+    timing_metrics = {
+        "epoch_times": [],
+        "forward_times": [],
+        "backward_times": [],
+        "device": str(device),
+    }
 
     for epoch in range(num_epochs):
         print(f"\n=== EPOCH {epoch + 1} / {num_epochs} ===")
         model.train()
         train_loss_total = 0.0
+        epoch_start = time.time()
+        forward_times = []
+        backward_times = []
 
         for _, batch in enumerate(
             tqdm(train_dataloader, desc=f"Training Epoch {epoch}")
@@ -131,25 +143,41 @@ def train_and_validate(
                 tgt_output.to(DEVICE),
             )
 
-            enc_att_mask = (src_input != tokenizer.pad_token_id).int().to(DEVICE)
-            dec_att_mask = (tgt_input != tokenizer.pad_token_id).int().to(DEVICE)
+            enc_att_mask = (src_input != tokenizer.pad_token_id).int().to(device)
+            dec_att_mask = (tgt_input != tokenizer.pad_token_id).int().to(device)
 
             optimizer.zero_grad()
+
+            forward_start = time.time()
             preds = model(
                 src_input,
                 tgt_input,
                 encoder_attention_mask=enc_att_mask,
                 decoder_attention_mask=dec_att_mask,
             )
-            # preds: [batch_size, seq_len, vocab_size]
+            torch.cuda.synchronize() if torch.cuda.is_available() else None
+            forward_times.append(time.time() - forward_start)
 
+            backward_start = time.time()
             loss = criterion(preds.view(-1, vocab_size), tgt_output.view(-1))
-
             loss.backward()
             optimizer.step()
             lr_scheduler.step()
+            torch.cuda.synchronize() if torch.cuda.is_available() else None
+            backward_times.append(time.time() - backward_start)
 
             train_loss_total += loss.item()
+
+        timing_metrics["epoch_times"].append(time.time() - epoch_start)
+        timing_metrics["forward_times"].append(sum(forward_times) / len(forward_times))
+        timing_metrics["backward_times"].append(
+            sum(backward_times) / len(backward_times)
+        )
+
+        print(f"Epoch {epoch} timing:")
+        print(f"Total time: {timing_metrics['epoch_times'][-1]:.2f}s")
+        print(f"Avg forward pass: {timing_metrics['forward_times'][-1]:.4f}s")
+        print(f"Avg backward pass: {timing_metrics['backward_times'][-1]:.4f}s")
 
         avg_train_loss = train_loss_total / len(train_dataloader)
         train_losses.append(avg_train_loss)
@@ -206,10 +234,14 @@ def train_and_validate(
             f"Train Loss: {avg_train_loss:.4f}, Val Loss: {avg_val_loss:.4f}"
         )
 
-    return train_losses, val_losses, bleu_scores
+    device_name = "gpu" if torch.cuda.is_available() else "cpu"
+    with open(f"timing_metrics_{device_name}.json", "w") as f:
+        json.dump(timing_metrics, f)
+
+    return train_losses, val_losses, bleu_scores, timing_metrics
 
 
-train_losses, val_losses, bleu_scores = train_and_validate(
+train_losses, val_losses, bleu_scores, timing_metrics = train_and_validate(
     model=model,
     train_dataloader=train_dataloader,
     val_dataloader=val_dataloader,
