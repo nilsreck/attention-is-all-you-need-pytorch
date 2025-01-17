@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex main"] 1736845256.39844 "main.aux" "main.bbl" "main" 1736845257.17893 0
+["bibtex main"] 1736927012.76075 "main.aux" "main.bbl" "main" 1736927013.63303 0
   "./references.bib" 1736845174.21071 2009 bb1c33bbc13333a08bf153fb434d4ddb ""
   "/home/reck/.TinyTeX/texmf-dist/bibtex/bst/base/alpha.bst" 1292289607 23907 a5f93555796fb564b924339521f10a7c ""
-  "main.aux" 1736845257.10255 4511 f01b5abd9976f5ae5ba3c20bffc2c0e1 "pdflatex"
+  "main.aux" 1736927013.54186 4967 8e830245cdcba68ab822552254aa8b9c "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1736845256.40938 "main.tex" "main.pdf" "main" 1736845257.17909 0
+["pdflatex"] 1736927012.77196 "main.tex" "main.pdf" "main" 1736927013.63325 0
   "/etc/texmf/web2c/texmf.cnf" 1721304888.24332 475 c0e671620eb5563b2130f56340a5fde8 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmbsy5.tfm" 1246382020 1120 1e8878807317373affa7f7bba4cf2f6a ""
@@ -194,14 +194,14 @@
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1736588585 8214746 3a44ccb62f00a9ccdcb52a0c27ce23d7 ""
   "figures/learnable_params.png" 1736582638 50498 9602f7b9afdcfb31f60f887aa9103284 ""
   "introduction.tex" 1736681094.05807 1051 030f57a29d5d577c4d13e1dba6011a9b ""
-  "main.aux" 1736845257.10255 4511 f01b5abd9976f5ae5ba3c20bffc2c0e1 "pdflatex"
-  "main.bbl" 1736845256.40454 510 e8e376eff7bccfb7831a266f30e44a31 "bibtex main"
-  "main.out" 1736845257.10355 2684 a6e86505eaccc8dd6c36ac0286af684a "pdflatex"
+  "main.aux" 1736927013.54186 4967 8e830245cdcba68ab822552254aa8b9c "pdflatex"
+  "main.bbl" 1736927012.76686 510 e8e376eff7bccfb7831a266f30e44a31 "bibtex main"
+  "main.out" 1736927013.54286 2684 a6e86505eaccc8dd6c36ac0286af684a "pdflatex"
   "main.tex" 1736755169.23388 6698 96a0dd58985f5a4a34b33e75a6a1a6c8 ""
-  "methodology.tex" 1736845253.64752 7886 40208341ca8bb988286ba08f76dc75e5 ""
+  "methodology.tex" 1736927011.37786 6997 ed5b85d8bdc6bce46d9dda0406900409 ""
   "optimization.tex" 1736596916.96107 243 44b20fe995ce71a91f27c80cb3fbce12 ""
   "results.tex" 1736582638 17 e5aa29df4c37f93cdad04a47e60f71d0 ""
-  "training.tex" 1736596953.29658 77 da3191d09b4818fd34bf0fc46e0e6dfd ""
+  "training.tex" 1736926806.74229 379 9d5dab54dbf0a3f60943d2a70c676039 ""
   (generated)
   "main.aux"
   "main.log"

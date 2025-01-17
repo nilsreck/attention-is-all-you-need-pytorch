@@ -8,7 +8,7 @@ For this, a shared tokenizer is trained over the source and target sequences, wh
 \subsection{Embedding Layers} 
 The embedding layer creates a \texttt{$d_{model}$}-dimensional vector representation for each encoded token of the input and target sequence. 
 Unlike recurrent architectures, which process sequences step by step, the Transformer processes entire sequences in parallel. 
-To compensate for the lack of sequence order awareness, the positional encoding layer enriches the representations with positional information. \\
+To compensate for the lack of sequence order awareness, the positional encoding layer enriches the representations with positional information. \todo{How does the model differentiate between embedding and position?} \\
 Cosistent with the original Transfromer architecture, we apply parameter sharing by using the same set of weights for both embedding layers and the pre-softmax linear transformation. This technique has shown to improve efficiency and model performance~\cite{press2017usingoutputembeddingimprove}.
 Sharing parameters between the encoder and decoder embedding layers offers several advantages.
 First, it can significantly reduce the model size while maintaining model performance.
@@ -17,18 +17,18 @@ Additionally, the efficiency of the model improves because shared parameters all
 Finally, by tying the input and output embeddings together, the model can enhance cross-lingual transfer learning, as aligned word representations across languages make it easier to generalize.
 
 \subsection{Encoder Stack} 
-The encoder is composed of six identical layers, each designed to transform the input sequence into a context-rich representation.
-Each layer consists of two sub-layers: a multi-head self-attention mechanism and a position-wise feed-forward network.
-To stabilize training and improve gradient flow, a residual connection~\cite{he2015deepresiduallearningimage} and layer normalization~\cite{ba2016layernormalization} are applied after each sub-layer.
-Residual connections, defined by \(x + f(x)\), help keep the original signal in the data intact while still being able to add important properties in the form of features (output from multi-head attention or feed-forward networks). Additionally, during backpropagation, we alleviate the problem of vanishing gradients because we add back the original signal and the signal is kept alive. Even if a block does not learn anything (\(g(\mathbf{x}) = 0\), where all weights and biases are pushed to zero), the original signal is kept intact. Lastly, using the residual connection, the underlying attention or feed-forward layer only needs to learn the function \(g(\mathbf{x})=f(\mathbf{x})-\mathbf{x}\) (called residual mapping). It has a less complex shape than learning \(f(\mathbf{x})\) from scratch. If the desired function is close to the identity function (\(f(\mathbf{x}) \approx \mathbf{x}\)), \(g(\mathbf{x}) = f(\mathbf{x}) - \mathbf{x}\) becomes small and easier to learn. This naturally evokes the question of why a network would want to learn a function that is (close to) the identity function. The answer is that residual blocks act as refinement units, slightly refining existing features instead of learning full (high variance) functions from scratch. It also mitigates the risk of overfitting: If \(f(\mathbf{x})\) is far from \(\mathbf{x}\), the layer needs to learn complex transformations. By focussing on small residuals \(g(\mathbf{x}) = f(\mathbf{x}) - \mathbf{x}\), the network increases the chance of generalizing better to unseen data. However, even when \(f(\mathbf{x})\) is far from \(\mathbf{x}\), it still provides a fallback for easier gradient flow.
-In the backward pass, if you have multiple rank-deficient matrices, your rank becomes even lower
-because the composition of rank-deficient matrices leads to a further reduction in the rank, potentially causing the gradients to vanish or lose critical information needed for effective weight updates.
+The encoder consists of six identical layers, each designed to transform the input sequence into a context-rich representation.
+Each layer comprises two sub-layers: a multi-head self-attention mechanism and a position-wise feed-forward network, each followed by a residual connection~\cite{he2015deepresiduallearningimage} and layer normalization~\cite{ba2016layernormalization} to stabilize training and improve gradient flow.
+Residual connections, defined as  \(y = \mathbf{x} + f(\mathbf{x})\), preserve the original signal while adding important features from multi-head attention or feed-forward layers, alleviating the problem of vanishing gradients during backpropagation.
+If the transformation \(f(\mathbf{x})\) collapses to zero (e.g. due to all weights and biases being pushed to zero), the output reduces to \(y = \mathbf{x}\), ensuring that the original signal is preserved when the layer does not learn anything.
+Residual connections can also be described by the residual mapping \(g(\mathbf{x}) = f(\mathbf{x}) - \mathbf{x}\), emphasizing that the network only needs to learn a small transformation when \(f(\mathbf{x})\) is close to the identity function.
+Learning a function close to the identity function, residual blocks slightly refine existing features instead of learning full (high variance) functions from scratch. \\
+Additionally, by focussing on small residuals \(g(\mathbf{x}) = f(\mathbf{x}) - \mathbf{x}\), the network increases the chance of generalizing better to unseen data, reducing overfitting.\todo{why?}
 
-This is the corresponding paper: \cite{he2015deepresiduallearningimage}.
 \subsection{Decoder Stack} 
 The decoder also consists of six identical layers.
 In addition to the two sub-layers of the encoder, it has a second multi-head attention mechanism over the outputs of the encoder.
-According to the encoder, residual connections and layer normalization are employed after each sub-layer.
+Consistent with the encoder, residual connections and layer normalization are employed after each sub-layer.
 In contrast to the multi-head self-attention layer in the encoder, the inputs to the attention mechanism in the decoder are masked such that the decoder cannot attend to future tokens.
 This prevents the decoder from cheating by attending to tokens it has not yet seen.
 Finally, the output of the decoder undergoes a linear transformation. After that, softmax is applied to convert the output into probabilities to predict the next token.

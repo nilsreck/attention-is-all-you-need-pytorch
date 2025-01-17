@@ -1,2 +1,5 @@
 \section{Training}
 % What went wrong during multiple iterations of training?
+
+In the backward pass, if you have multiple rank-deficient matrices, your rank becomes even lower.
+because the composition of rank-deficient matrices leads to a further reduction in the rank, potentially causing the gradients to vanish or lose critical information needed for effective weight updates.
