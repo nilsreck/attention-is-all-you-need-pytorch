@@ -68,7 +68,9 @@ class TranslationDataset(Dataset):
 
         encoder_target_input = torch.cat([torch.tensor([bos_token_id]), encoded_target])
 
-        last_token_idx = (encoded_target_full != 0).nonzero()[-1]
+        last_token_idx = (encoded_target_full != self.tokenizer.pad_token_id).nonzero()[
+            -1
+        ]
         target_output = encoded_target_full.clone()
         if last_token_idx <= MAX_LEN - 2:
             target_output[last_token_idx + 1] = eos_token_id

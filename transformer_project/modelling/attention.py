@@ -67,7 +67,7 @@ class MultiHeadAttention(nn.Module):
         key = self.key_transform(key)
         value = self.value_transform(value)
 
-        # Split embedddings in half, then reshape to put heads dim ahead of sequence length dim
+        # Split embedddings in half (for num_heads = 2), then reshape to put heads dim ahead of sequence length dim
         query = torch.einsum(
             "bqhd->bhqd", query.view(batch_size, seq_length_q, self.num_heads, self.d_k)
         )

@@ -48,20 +48,17 @@ def translate(model, src_seq, tokenizer, device="cuda", max_len=64):
 
     with torch.no_grad():
         enc_mask = (src_seq != pad_token_id).int()
+        batch_size = src_seq.size(0)
 
         init_dec_input = torch.tensor(
             [[bos_token_id] + [pad_token_id] * (max_len - 1)], device=device
-        ).repeat(
-            BATCH_SIZE, 1
-        )  # [batch_size, seq_length]
+        ).repeat(batch_size, 1)
 
-        eos_generated = torch.zeros(src_seq.size(0), dtype=torch.bool, device=device)
+        eos_generated = torch.zeros(batch_size, dtype=torch.bool, device=device)
 
         for i in range(1, max_len - 1):
-            output = model(
-                src_seq, init_dec_input, enc_mask
-            )  # [batch_size, seq_length, vocab_size]
-            next_tokens = torch.argmax(output[:, i - 1, :], dim=-1)  # [batch_size]
+            output = model(src_seq, init_dec_input, enc_mask)
+            next_tokens = torch.argmax(output[:, i - 1, :], dim=-1)
 
             init_dec_input[:, i] = torch.where(eos_generated, pad_token_id, next_tokens)
             eos_generated |= next_tokens == tokenizer.eos_token_id
@@ -69,7 +66,10 @@ def translate(model, src_seq, tokenizer, device="cuda", max_len=64):
             if eos_generated.all():
                 break
 
-    return [tokenizer.decode(seq, skip_special_tokens=True) for seq in init_dec_input]
+        decoded_seqs = [
+            tokenizer.decode(seq, skip_special_tokens=True) for seq in init_dec_input
+        ]
+        return decoded_seqs, output
 
 
 if __name__ == "__main__":
@@ -94,7 +94,7 @@ if __name__ == "__main__":
         src_seq = batch["source"]
         tgt_output = batch["target_output"]
 
-        translated_batch = translate(model, src_seq, tokenizer, DEVICE)
+        translated_batch, _ = translate(model, src_seq, tokenizer, DEVICE)
         translations.extend(translated_batch)
 
         references.extend(
@@ -105,13 +105,7 @@ if __name__ == "__main__":
     bleu_score = bleu.compute(
         predictions=translations, references=[[ref] for ref in references]
     )
-    print(f"BLEU Score: {bleu_score['bleu']}")
+    print(f"BLEU Score: {bleu_score}")
 
-    plt.plot(
-        range(len(translations)), [bleu_score["bleu"]] * len(translations), marker="o"
-    )
-    plt.xlabel("Translation Steps")
-    plt.ylabel("BLEU Score")
-    plt.title("BLEU Score vs Translation Steps")
-    plt.grid(True)
-    plt.savefig("bleu_score_test.png")
+    for i, translation in enumerate(translations):
+        print(f"Translation {i + 1}: {translation}")

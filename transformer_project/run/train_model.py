@@ -15,7 +15,9 @@ from transformer_project.data.translation_dataset import TranslationDataset
 from transformer_project.modelling.lr_scheduler import LR_Scheduler
 from transformer_project.preprocessing.clean_data import load_or_clean_data
 from transformer_project.modelling.huggingface_bpe_tokenizer import CustomTokenizer
+from transformer_project.run.inference import translate
 
+# BATCH_SIZE = 1500 https://arxiv.org/pdf/1804.00247
 BATCH_SIZE = 32
 NUM_EPOCHS = 5
 NUM_ENCODER_LAYERS = 4
@@ -56,12 +58,14 @@ tokenizer = CustomTokenizer(
 
 train_dataset = TranslationDataset(cleaned_train, tokenizer=tokenizer)
 val_dataset = TranslationDataset(cleaned_val, tokenizer=tokenizer)
-# test_dataset = TranslationDataset(dataset["test"], tokenizer=tokenizer)
 
 
-train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-val_dataloader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
-# test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
+train_dataloader = DataLoader(
+    train_dataset, batch_size=BATCH_SIZE, shuffle=True, drop_last=True
+)
+val_dataloader = DataLoader(
+    val_dataset, batch_size=BATCH_SIZE, shuffle=False, drop_last=True
+)
 
 params_with_decay = []
 params_without_decay = []
@@ -161,44 +165,27 @@ def train_and_validate(
             for _, batch in enumerate(tqdm(val_dataloader)):
 
                 src_input, tgt_input, tgt_output = (
-                    batch["source"],
-                    batch["target_input"],
-                    batch["target_output"],
+                    batch["source"].to(device),
+                    batch["target_input"].to(device),
+                    batch["target_output"].to(device),
                 )
 
-                src_input, tgt_input, tgt_output = (
-                    src_input.to(DEVICE),
-                    tgt_input.to(DEVICE),
-                    tgt_output.to(DEVICE),
+                enc_att_mask = (src_input != tokenizer.pad_token_id).int().to(device)
+
+                decoded_preds, logits = translate(
+                    model, src_seq=src_input, tokenizer=tokenizer, device=device
                 )
 
-                enc_att_mask = (src_input != tokenizer.pad_token_id).int().to(DEVICE)
-                dec_att_mask = (tgt_input != tokenizer.pad_token_id).int().to(DEVICE)
-
-                # TODO: remove teacher forcing
-                preds = model(
-                    src_input,
-                    tgt_input,
-                    encoder_attention_mask=enc_att_mask,
-                    decoder_attention_mask=dec_att_mask,
-                )
-                # preds: [batch_size, seq_len, vocab_size]
-
-                loss = criterion(preds.view(-1, vocab_size), tgt_output.view(-1))
-
+                loss = criterion(logits.view(-1, vocab_size), tgt_output.view(-1))
                 val_loss_total += loss.item()
 
-                batch_predictions = [
-                    tokenizer.decode(seq, skip_special_tokens=True)
-                    for seq in preds.argmax(dim=-1)
-                ]
-                batch_references = [
-                    [tokenizer.decode(ref, skip_special_tokens=True)]
-                    for ref in tgt_output
-                ]
-
-                bleu_predictions.extend(batch_predictions)
-                bleu_references.extend(batch_references)
+                bleu_predictions.extend(decoded_preds)
+                bleu_references.extend(
+                    [
+                        tokenizer.decode(ref, skip_special_tokens=True)
+                        for ref in tgt_output
+                    ]
+                )
 
         bleu_score = bleu.compute(
             predictions=bleu_predictions, references=bleu_references
