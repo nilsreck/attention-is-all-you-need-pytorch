@@ -3,8 +3,10 @@ from torch import nn
 
 
 class PositionalEncoding(nn.Module):
-    def __init__(self, embedding_dim, sq_len):
+    def __init__(self, embedding_dim, sq_len, dropout=0.1):
         super().__init__()
+        self.dropout = nn.Dropout(p=dropout)
+
         position = torch.arange(sq_len, dtype=torch.float).unsqueeze(1)
         div_term = 10000 ** (torch.arange(0, embedding_dim, 2) / embedding_dim)
         pe = torch.zeros(sq_len, embedding_dim)
@@ -20,4 +22,5 @@ class PositionalEncoding(nn.Module):
         positional_embedding = self.positional_embedding[:, :seq_len, :].requires_grad_(
             False
         )
-        return input + positional_embedding
+        x = input + positional_embedding
+        return self.dropout(x)
