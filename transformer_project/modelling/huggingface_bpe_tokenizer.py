@@ -6,9 +6,8 @@ from tokenizers import Tokenizer, models, pre_tokenizers, decoders, trainers
 from transformer_project.preprocessing.clean_data import clean_data
 from pathlib import Path
 
-PATH = Path(
-    "/home/reck/personal/transformer_project/transformer_project/data/tokenizer"
-)
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+PATH = PROJECT_ROOT / "transformer_project" / "data" / "tokenizer"
 
 VOCAB_SIZE = 50000
 MIN_FREQ = 2

@@ -15,7 +15,8 @@ import json
 from transformer_project.modelling.transformer import Transformer
 from transformer_project.data.translation_dataset import TranslationDataset
 from transformer_project.modelling.lr_scheduler import LR_Scheduler
-from transformer_project.preprocessing.clean_data import load_or_clean_data
+
+# from transformer_project.preprocessing.clean_data import load_or_clean_data
 from transformer_project.modelling.huggingface_bpe_tokenizer import CustomTokenizer
 from transformer_project.run.inference import translate
 
@@ -48,19 +49,22 @@ model = Transformer(
 ).to(DEVICE)
 
 
-cleaned_train = load_or_clean_data("train[:1%]")
-cleaned_val = load_or_clean_data("validation[:160]")
+# cleaned_train = load_or_clean_data("train[:1%]")
+# cleaned_val = load_or_clean_data("validation[:160]")
 
 project_root = Path(__file__).parent.parent.parent
-data_dir = project_root / "data" / "tokenizer"
+data_dir = project_root / "transformer_project" / "data"
 
 tokenizer = CustomTokenizer(
     vocab_size=VOCAB_SIZE,
-    corpus_file=str(data_dir / "byte-level-bpe_wmt17.tokenizer.json"),
+    corpus_file=str(data_dir / "tokenizer" / "byte-level-bpe_wmt17.tokenizer.json"),
 ).load_gpt2_tokenizer()
 
-train_dataset = TranslationDataset(cleaned_train, tokenizer=tokenizer)
-val_dataset = TranslationDataset(cleaned_val, tokenizer=tokenizer)
+train_data = torch.load(data_dir / "train_dataset.pt")
+val_data = torch.load(data_dir / "val_dataset.pt")
+
+train_dataset = TranslationDataset(train_data, tokenizer=tokenizer)
+val_dataset = TranslationDataset(val_data, tokenizer=tokenizer)
 
 
 train_dataloader = DataLoader(
