@@ -8,6 +8,7 @@ from transformer_project.modelling.transformer import Transformer
 from transformer_project.data.translation_dataset import TranslationDataset
 from transformer_project.preprocessing.clean_data import load_or_clean_data
 from transformer_project.modelling.huggingface_bpe_tokenizer import CustomTokenizer
+from transformer_project.run.bleu import compute_bleu
 
 BATCH_SIZE = 32
 D_MODEL = 64
@@ -101,8 +102,7 @@ if __name__ == "__main__":
             [tokenizer.decode(ref, skip_special_tokens=True) for ref in tgt_output]
         )
 
-    bleu = evaluate.load("bleu")
-    bleu_score = bleu.compute(
+    bleu_score = compute_bleu(
         predictions=translations, references=[[ref] for ref in references]
     )
     print(f"BLEU Score: {bleu_score}")

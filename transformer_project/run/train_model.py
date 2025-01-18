@@ -10,6 +10,7 @@ import evaluate
 import matplotlib.pyplot as plt
 import time
 import json
+import numpy as np
 
 
 from transformer_project.modelling.transformer import Transformer
@@ -258,10 +259,12 @@ train_losses, val_losses, bleu_scores, timing_metrics = train_and_validate(
     vocab_size=50000,
 )
 
-training_steps = list(range(NUM_EPOCHS))
-plt.plot(training_steps, bleu_scores, marker="o")
-plt.xlabel("Training Steps")
+epoch_times = timing_metrics["epoch_times"]
+cumulative_hours = np.cumsum(epoch_times) / 3600
+
+plt.plot(cumulative_hours, bleu_scores, marker="o")
+plt.xlabel("Training Time (hours)")
 plt.ylabel("BLEU Score")
-plt.title("BLEU Score vs Training Steps")
+plt.title("BLEU Score vs Training Time")
 plt.grid(True)
 plt.savefig("bleu_score_val.png")
