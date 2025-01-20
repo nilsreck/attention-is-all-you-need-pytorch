@@ -26,13 +26,13 @@ class Attention(nn.Module):
         if self.mask_future:
             future_tokens_mask = torch.triu(
                 torch.ones(seq_length_q, seq_length_k), diagonal=1
-            )
+            ).to(query.device)
             scores = scores.masked_fill(future_tokens_mask == 1, -1e9)
 
         if mask is not None:
             padding_mask = mask.unsqueeze(1).expand(
                 batch_size, seq_length_q, seq_length_k
-            )
+            ).to(query.device)
             scores = scores.masked_fill(padding_mask == 0, -1e9)
 
         attention_weights = torch.softmax(scores, dim=-1)

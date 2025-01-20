@@ -7,8 +7,8 @@ from transformer_project.preprocessing.clean_data import clean_data
 def prepare_and_save_data(save_dir: Path):
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    train_data = load_dataset("wmt17", "de-en", split="train")
-    val_data = load_dataset("wmt17", "de-en", split="validation")
+    train_data = load_dataset("wmt17", "de-en", split="train[:5%]")
+    val_data = load_dataset("wmt17", "de-en", split="validation[:10%]")
     test_data = load_dataset("wmt17", "de-en", split="test")
 
     train_cleaned = clean_data(train_data)

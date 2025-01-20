@@ -6,11 +6,12 @@ from torch.utils.data import DataLoader
 import torch.utils.data
 from tqdm import tqdm
 from pathlib import Path
-import evaluate
+from datetime import datetime
 import matplotlib.pyplot as plt
 import time
 import json
 import numpy as np
+import psutil
 
 
 from transformer_project.modelling.transformer import Transformer
@@ -99,6 +100,19 @@ criterion = nn.CrossEntropyLoss(ignore_index=tokenizer.pad_token_id)
 lr_scheduler = LR_Scheduler(optimizer, d_model=D_MODEL, warmup_steps=WARMUP_STEPS)
 
 
+def get_timestamp():
+    return datetime.now().strftime("%Y%m%d_%H%M%S")
+
+
+def log_memory_usage(device, log_file=f"memory_usage_{get_timestamp()}.log"):
+    with open(log_file, "a") as f:
+        if device.type == "cuda":
+            gpu_memory = torch.cuda.memory_allocated(device) / (1024**2)
+            f.write(f"GPU Memory Allocated: {gpu_memory:.2f} MB\n")
+        cpu_memory = psutil.virtual_memory().used / (1024**3)
+        f.write(f"CPU Memory Used: {cpu_memory:.2f} GB\n")
+
+
 def train_and_validate(
     model,
     train_dataloader,
@@ -172,6 +186,7 @@ def train_and_validate(
             backward_times.append(time.time() - backward_start)
 
             train_loss_total += loss.item()
+            log_memory_usage(device)
 
         timing_metrics["epoch_times"].append(time.time() - epoch_start)
         timing_metrics["forward_times"].append(sum(forward_times) / len(forward_times))
@@ -239,8 +254,7 @@ def train_and_validate(
             f"Train Loss: {avg_train_loss:.4f}, Val Loss: {avg_val_loss:.4f}"
         )
 
-    device_name = "gpu" if torch.cuda.is_available() else "cpu"
-    with open(f"timing_metrics_{device_name}.json", "w") as f:
+    with open(f"timing_metrics_{device}_{get_timestamp()}.json", "w") as f:
         json.dump(timing_metrics, f)
 
     return train_losses, val_losses, bleu_scores, timing_metrics
@@ -258,6 +272,7 @@ train_losses, val_losses, bleu_scores, timing_metrics = train_and_validate(
     num_epochs=NUM_EPOCHS,
     vocab_size=50000,
 )
+
 
 epoch_times = timing_metrics["epoch_times"]
 cumulative_hours = np.cumsum(epoch_times) / 3600
