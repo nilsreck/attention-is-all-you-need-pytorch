@@ -21,6 +21,7 @@ from transformer_project.modelling.lr_scheduler import LR_Scheduler
 # from transformer_project.preprocessing.clean_data import load_or_clean_data
 from transformer_project.modelling.huggingface_bpe_tokenizer import CustomTokenizer
 from transformer_project.run.inference import translate
+from transformer_project.run.bleu import _compute_bleu
 
 # BATCH_SIZE = 1500 https://arxiv.org/pdf/1804.00247
 BATCH_SIZE = 32
@@ -204,7 +205,6 @@ def train_and_validate(
 
         model.eval()
         val_loss_total = 0.0
-        bleu = evaluate.load("bleu")
 
         bleu_predictions = []
         bleu_references = []
@@ -235,7 +235,7 @@ def train_and_validate(
                     ]
                 )
 
-        bleu_score = bleu.compute(
+        bleu_score = _compute_bleu(
             predictions=bleu_predictions, references=bleu_references
         )
         print(f"BLEU Score: {bleu_score}")
