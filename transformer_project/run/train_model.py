@@ -277,9 +277,27 @@ train_losses, val_losses, bleu_scores, timing_metrics = train_and_validate(
 epoch_times = timing_metrics["epoch_times"]
 cumulative_hours = np.cumsum(epoch_times) / 3600
 
-plt.plot(cumulative_hours, bleu_scores, marker="o")
-plt.xlabel("Training Time (hours)")
-plt.ylabel("BLEU Score")
-plt.title("BLEU Score vs Training Time")
-plt.grid(True)
-plt.savefig("bleu_score_val.png")
+print(f"Cumulative training time: {cumulative_hours}")
+
+
+def plot_lr_schedule(lr_scheduler, num_epochs):
+    lrs = [lr_scheduler.get_lr(epoch) for epoch in range(num_epochs)]
+    plt.plot(lrs)
+    plt.xlabel("Epoch")
+    plt.ylabel("Learning Rate")
+    plt.title("Learning Rate Schedule")
+    plt.grid(True)
+    plt.savefig("lr_schedule.png")
+
+
+def plot_bleu_score(bleu_scores, cumulative_hours):
+    plt.plot(cumulative_hours, bleu_scores, marker="o")
+    plt.xlabel("Training Time (hours)")
+    plt.ylabel("BLEU Score")
+    plt.title("BLEU Score vs Training Time")
+    plt.grid(True)
+    plt.savefig("bleu_score_val.png")
+
+
+plot_bleu_score(bleu_scores, cumulative_hours)
+plot_lr_schedule(lr_scheduler, NUM_EPOCHS)
