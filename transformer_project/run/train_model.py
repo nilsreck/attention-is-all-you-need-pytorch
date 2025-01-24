@@ -36,7 +36,7 @@ MAX_LEN = 64
 VOCAB_SIZE = 50000
 LEARNING_RATE = 1e-3
 WEIGHT_DECAY = 1e-2
-WARMUP_STEPS = 1
+WARMUP_STEPS = 10
 DROPOUT = 0.1
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -213,6 +213,7 @@ def train_and_validate(
         print(f"Total time: {timing_metrics['epoch_times'][-1]:.2f}s")
         print(f"Avg forward pass: {timing_metrics['forward_times'][-1]:.4f}s")
         print(f"Avg backward pass: {timing_metrics['backward_times'][-1]:.4f}s")
+        log_memory_usage(device, epoch)
 
         avg_train_loss = train_loss_total / len(train_dataloader)
         train_losses.append(avg_train_loss)
@@ -295,13 +296,18 @@ print(f"Cumulative training time: {cumulative_hours}")
 
 
 def plot_lr_schedule(lr_scheduler, num_epochs):
-    lrs = [lr_scheduler.get_lr(epoch) for epoch in range(num_epochs)]
-    plt.plot(lrs)
-    plt.xlabel("Epoch")
+    steps_per_epoch = len(train_dataloader)
+    total_steps = num_epochs * steps_per_epoch
+    lrs = lr_scheduler.get_lr_schedule(total_steps)
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(range(1, total_steps + 1), lrs)
+    plt.xlabel("Training Step")
     plt.ylabel("Learning Rate")
     plt.title("Learning Rate Schedule")
     plt.grid(True)
-    plt.savefig("lr_schedule.png")
+    plt.savefig(f"lr_schedule_{get_timestamp()}.png")
+    plt.close()
 
 
 def plot_bleu_score(bleu_scores, cumulative_hours):
@@ -310,7 +316,7 @@ def plot_bleu_score(bleu_scores, cumulative_hours):
     plt.ylabel("BLEU Score")
     plt.title("BLEU Score vs Training Time")
     plt.grid(True)
-    plt.savefig("bleu_score_val.png")
+    plt.savefig(f"bleu_score_val_{get_timestamp()}.png")
 
 
 plot_bleu_score(bleu_scores, cumulative_hours)
