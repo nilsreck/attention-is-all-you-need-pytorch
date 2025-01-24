@@ -100,18 +100,30 @@ criterion = nn.CrossEntropyLoss(ignore_index=tokenizer.pad_token_id)
 
 lr_scheduler = LR_Scheduler(optimizer, d_model=D_MODEL, warmup_steps=WARMUP_STEPS)
 
+scaler = torch.cuda.amp.GradScaler()
+
 
 def get_timestamp():
     return datetime.now().strftime("%Y%m%d_%H%M%S")
 
 
-def log_memory_usage(device, log_file=f"memory_usage_{get_timestamp()}.log"):
+def log_memory_usage(
+    device, epoch=None, log_file=f"memory_usage_{get_timestamp()}.log"
+):
+    Path(log_file).parent.mkdir(parents=True, exist_ok=True)
+
     with open(log_file, "a") as f:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        epoch_str = f"Epoch {epoch}: " if epoch is not None else "Start: "
+
         if device.type == "cuda":
             gpu_memory = torch.cuda.memory_allocated(device) / (1024**2)
-            f.write(f"GPU Memory Allocated: {gpu_memory:.2f} MB\n")
-        cpu_memory = psutil.virtual_memory().used / (1024**3)
-        f.write(f"CPU Memory Used: {cpu_memory:.2f} GB\n")
+            f.write(
+                f"[{timestamp}] {epoch_str}GPU Memory Allocated: {gpu_memory:.2f} MB\n"
+            )
+        else:
+            cpu_memory = psutil.virtual_memory().used / (1024**3)
+            f.write(f"[{timestamp}] CPU Memory Used: {cpu_memory:.2f} GB\n")
 
 
 def train_and_validate(
@@ -169,25 +181,27 @@ def train_and_validate(
             optimizer.zero_grad()
 
             forward_start = time.time()
-            preds = model(
-                src_input,
-                tgt_input,
-                encoder_attention_mask=enc_att_mask,
-                decoder_attention_mask=dec_att_mask,
-            )
+            with torch.cuda.amp.autocast():
+                preds = model(
+                    src_input,
+                    tgt_input,
+                    encoder_attention_mask=enc_att_mask,
+                    decoder_attention_mask=dec_att_mask,
+                )
+                loss = criterion(preds.view(-1, vocab_size), tgt_output.view(-1))
+
             torch.cuda.synchronize() if torch.cuda.is_available() else None
             forward_times.append(time.time() - forward_start)
 
             backward_start = time.time()
-            loss = criterion(preds.view(-1, vocab_size), tgt_output.view(-1))
-            loss.backward()
-            optimizer.step()
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
             lr_scheduler.step()
             torch.cuda.synchronize() if torch.cuda.is_available() else None
             backward_times.append(time.time() - backward_start)
 
             train_loss_total += loss.item()
-            log_memory_usage(device)
 
         timing_metrics["epoch_times"].append(time.time() - epoch_start)
         timing_metrics["forward_times"].append(sum(forward_times) / len(forward_times))
