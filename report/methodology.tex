@@ -1,24 +1,31 @@
-\section{Methodology} The Transformer mainly consists of two principal components, the encoder and decoder.
-While both process and transform input data, the encoder focuses on generating a context-rich representation of the input sequence, whereas the decoder uses this representation to generate the target sequence step by step.
+\section{Methodology} 
 However, before the model can process the input data, it has to be encoded in a numerical representation that the model can interpret.
 For this, a shared tokenizer is trained over the source and target sequences, which maps a token (a word or subword) of a sequence to a number and vice versa. 
 
 \todo[inline]{add info about alignment of sequences (maybe add to training section)}
 
+\begin{figure}[h]
+    \begin{center}
+        \includegraphics[width=\textwidth]{figures/transformer.png}
+    \end{center}
+    \caption{The original transformer architecture, adapted from Vaswani et al.~\cite{vaswani2017attention}}\label{fig:transformer}
+\end{figure}
+
 \subsection{Embedding Layers} 
 The embedding layer creates a \texttt{$d_{model}$}-dimensional vector representation for each encoded token of the input and target sequence. 
-Unlike recurrent architectures, which process sequences step by step, the Transformer processes entire sequences in parallel. 
-To compensate for the lack of sequence order awareness, the positional encoding layer enriches the representations with positional information. \todo{How does the model differentiate between embedding and position?} \\
-Cosistent with the original Transfromer architecture, we apply parameter sharing by using the same set of weights for both embedding layers and the pre-softmax linear transformation. This technique has shown to improve efficiency and model performance~\cite{press2017usingoutputembeddingimprove}.
+Cosistent with the original Transfromer architecture, we apply parameter sharing by using the same set of weights for both embedding layers and the pre-softmax linear transformation, which maps the embeddings back to their respective token index.
 Sharing parameters between the encoder and decoder embedding layers offers several advantages.
-First, it can significantly reduce the model size while maintaining model performance.
+First, it can significantly reduce the model size while maintaining model performance~\cite{press2017usingoutputembeddingimprove}.
 Second, parmeter sharing reduces the degrees of freedom of the model, thus implicitly applying regularization by forcing different parts of the model to use the same parameters, preventing the model from overfitting.
 Additionally, the efficiency of the model improves because shared parameters allow for faster updates and fewer memory operations.
-Finally, by tying the input and output embeddings together, the model can enhance cross-lingual transfer learning, as aligned word representations across languages make it easier to generalize.
+Finally, by tying the input and output embeddings together, the model can enhance cross-lingual transfer learning, as aligned word representations across languages make it easier to generalize.\todo{delete last point?} \\
+Unlike recurrent architectures, which process sequences step by step, the Transformer processes entire sequences in parallel. 
+To compensate for the lack of sequence order awareness, the positional encoding layer enriches the representations with fixed positional information. \todo{How does the model differentiate between embedding and position?} \\
+\todo[inline]{add formulars if space permits}
 
 \subsection{Encoder Stack} 
 The encoder consists of six identical layers, each designed to transform the input sequence into a context-rich representation.
-Each layer comprises two sub-layers: a multi-head self-attention mechanism and a position-wise feed-forward network, each followed by a residual connection~\cite{he2015deepresiduallearningimage} and layer normalization~\cite{ba2016layernormalization} to stabilize training and improve gradient flow.
+Each layer comprises two sub-layers: a multi-head self-attention mechanism and a position-wise feed-forward network (see \cref{sec:ffn}), each followed by a residual connection~\cite{he2015deepresiduallearningimage} and layer normalization~\cite{ba2016layernormalization} (see \cref{sec:normalization}) to stabilize training and improve gradient flow.
 Residual connections, defined as  \(y = \mathbf{x} + f(\mathbf{x})\), preserve the original signal while adding important features from multi-head attention or feed-forward layers, alleviating the problem of vanishing gradients during backpropagation.
 If the transformation \(f(\mathbf{x})\) collapses to zero (e.g. due to all weights and biases being pushed to zero), the output reduces to \(y = \mathbf{x}\), ensuring that the original signal is preserved when the layer does not learn anything.
 Residual connections can also be described by the residual mapping \(g(\mathbf{x}) = f(\mathbf{x}) - \mathbf{x}\), emphasizing that the network only needs to learn a small transformation when \(f(\mathbf{x})\) is close to the identity function.
@@ -33,22 +40,47 @@ In contrast to the multi-head self-attention layer in the encoder, the inputs to
 This prevents the decoder from cheating by attending to tokens it has not yet seen.
 Finally, the output of the decoder undergoes a linear transformation. After that, softmax is applied to convert the output into probabilities to predict the next token.
 
-
-% why position? Understand embeddings of the input. Add how the heads are
-% concatenated in attention
+% Add how the heads are concatenated in attention
 \subsection{Attention} 
-\todo[inline]{Explain how multiple atttention heads help}
-It expands the model’s ability to focus on different positions.
-Yes, in the example above, z1 contains a little bit of every other encoding, but it could be dominated by the actual word itself.
-If we’re translating a sentence like “The animal didn’t cross the street because it was too tired”, it would be useful to know which word “it” refers to.
+The attention function injects contextual information about related tokens into each token's representation.
+This process enables the model to capture dependencies between words, regardless of their position in the sequence. \\
+The first step is to create the query(\(Q)\), key(\(K)\), and value(\(V)\) vectors from the encoder or decoder input vectors by multiplying them with three matrices that are learned during training.
+These matrices must be learned in a way that they reflect meaningful similarity relationships in terms of attention. \\
+According to \cref{eq:attention}, the attention function then first computes a score for each token in the sequence relative to every other token by taking the dot product of the query vector with the transposed key vector. 
+\begin{equation}
+    \text{Attention}(Q,K,V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+    \label{eq:attention}
+\end{equation}
+This computation, along with all other operations of the attention mechanism, is performed in parallel for all tokens in each sequence across the entire batch.
+Next, the result is scaled by \(\sqrt{d_k}\) to avoid exploding gradients and improve stability.
+Then a softmax function is applied to maintain relevant words, subside words we can mostly ignore, and prepare the output to be summed up.
+Finally, by multiplying the softmax scores by \(V\) produces a new representation for each token.
+While it retains most of its original structure, it is enriched with contextual information form the most relevant tokens for our translation task. \\
+In the attention mechanism, we employ two types of masks; first, an attention mask to prevent the attention function from attending to padding tokens.
+Second, a causal mask in the Masked Multi-Head Attention of the decoder to prevent our model from cheating by attending to future tokens during inference.
 
-\subsection{Position-wise Feed-Forward Layer}
-% layer normalization where? Write down the equation for the layer
-% normalization layer and provide an explanation of the function of this layer
-% in a transformer model. My question: Why is it important to use two
-% independent layer normalization layers following multi-head self-attention
-% layer and the position-wise feed-forward layer? Explain the benefits of
-% parameter sharing in the transformer model.
+\subsection{Position-Wise Feed-Forward Networks} \label{sec:ffn}
+\begin{equation}
+	\text{FFN}(x) = \max(0, xW_1 + b_1)W_2 + b_2
+\end{equation}
+The FNN introduces a higher-dimensional space to explore combinations of features present in the token embeddings that it could not explore in the original embedding space.
+That happens by the first linear transformation \(xW_1 + b_1\).
+Next, ReLU, \(\max(0, xW_1 + b_1)\) introduces non-linearity (why does that help?) and helps prevent vanishing gradients (how?). 
+The FFN has two linear layers of size \(\left(d_{\text{model}}, d_{\text{ffn}}\right)\) and \(\left(d_{\text{ffn}}, d_{\text{model}}\right)\), respecetively.
+Finally, the non-linearly transformed representation is projected back into the original space, \(d_{\text{model}}\), such that it (what is it?) is forced to focus on the most significant feature combinations (bring examples).
+
+\subsection{Normalization Layer} \label{sec:normalization}
+Layer normalization is applied after each self-attention and feed-forward sublayer.
+\begin{equation}
+	\text{LayerNorm}(x) = \frac{x - \mu}{\sigma} \cdot \gamma + \beta
+\end{equation}
+Where \(x\) is the input vector, in our case the token embedding, \(\mu\) the mean of \(x\), calculated across the features, \(\sigma\) is the standard deviation, also calculated across the features:
+\begin{align}
+	\mu^l = \frac{1}{H} \sum_{i=1}^H a_i^l &   & \sigma^l = \sqrt{\frac{1}{H}\sum_{i=1}^H (a_i^l - \mu^l)^2} 
+\end{align}
+\(H\) is the number of features for each token representation, \(\gamma\) and \(\beta\) are optional, learnable parameters to scale and shift the normalized values. \\
+In a transformer architecture, the layer normalization layer serves different purposes: it stabilizes training by normalizing the distributions of the layer inputs, thus preventing exploding or vanishing gradients, which would also have adverse, covariate effects on the surrounding layers in the forward and backward passes.
+Additionally, contrary to batch normalization, layer normalization handles variations in sequence length better, since it computes the mean and variance along the features of the token and not across the individual features across the batch.
 
 \begin{center}
 \begin{tikzpicture}[

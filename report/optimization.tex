@@ -1,5 +1,36 @@
 \section{Optimization Techniques}
 \subsection{Learning Rate Scheduler}
-\subsection{Optimizer}
+\subsection{AdamW Optimizer}
+Both, in Adam~\cite{kingma2017adammethodstochasticoptimization} and AdamW~\cite{loshchilov2019decoupledweightdecayregularization}, \cref{eq:mean_var} shows that the learning rate is adjusted for each parameter independently based on the history of gradients. The running averages, \(m_{t-1}\) and \(v_{t-1}\), make it possible to include the history of the gradients in the calculation of the first and second moment:
+
+% Equation 1: First moment estimate
+\begin{equation}
+\label{eq:mean_var}
+m_t = \beta_1 m_{t-1} + (1 - \beta_1) g_t \text{,} \quad v_t = \beta_2 v_{t-1} + (1 - \beta_2) g_t^2
+\end{equation}
+\\
+The calculation of the first and second moment in this fashion ensures that parameters with larger gradient variances are updated more slowly than those with larger gradient variances to stabilize the optimization process. \\
+The bias correction from \cref{eq:moments} is important because, without it, the first and second moments are biased toward zero at early timesteps, because \(m_0\) and \(v_0\) are zero. Consequently, this results in overly careful parameter updates in the beginning, which hinder the performance and convergence of the training process. \\
+% Equation 3: Bias-corrected moments
+\begin{equation}
+\hat{m}_t = \frac{m_t}{1 - \beta_1^t} \text{,} \quad \hat{v}_t = \frac{v_t}{1 - \beta_2^t}
+\label{eq:moments}
+\end{equation}
+\\
+In the original Adam, weight decay is added directly to the gradient. Consequently, this means that the weight decay term is included in the moment estimates (\(m_t\) and \(v_t\)). The AdamW optimizer circumvents this problem: The weight decay is applied directly to the weights after the adaptive gradient update, as shown in \cref{eq:weight_decay}:
+% Equation 5: Weight decay
+\begin{equation}
+\label{eq:weight_decay}
+\theta_t \leftarrow \theta_t - \eta \lambda \theta_t
+\end{equation}
+\\
+\cref{eq:update} shows the complete parameter update for the AdamW optimizer, where the weight decay is decoupled from the gradient calculation.
+% Equation 6: Parameter update
+\begin{equation}
+\label{eq:update}
+\theta_{t+1} = \theta_t - \eta \left( \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} \right) - \eta \lambda \theta_t
+\end{equation}
+\todo[inline]{Add figure from AdamW paper?}
+
 % Study the AdamW optimiser used. Write down the update equations and explain
 % the reasoning behind the bias correction and decoupled weight decay.
