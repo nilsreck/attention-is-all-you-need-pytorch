@@ -6,15 +6,21 @@ class LR_Scheduler:
         self.step_num = 1
         self.last_lr = 0
 
-    def step(self) -> float:
-        """Perform a step."""
-        result = (self.d_model**-0.5) * min(
-            self.step_num ** (-0.5), self.step_num * self.warmup_steps ** (-1.5)
+    def calculate_lr(self, step: int):
+        return (self.d_model**-0.5) * min(
+            step ** (-0.5), step * self.warmup_steps ** (-1.5)
         )
-        self.step_num += 1
-        self.last_lr = result
-        return result
 
-    def get_lr(self) -> float:
-        """Return last computed learning rate."""
+    def get_lr_schedule(self, num_steps: int):
+        return [self.calculate_lr(step) for step in range(1, num_steps + 1)]
+
+    def step(self):
+        lr = self.calculate_lr(self.step_num)
+        self.step_num += 1
+        self.last_lr = lr
+        for param_group in self.optimizer.param_groups:
+            param_group["lr"] = lr
+        return lr
+
+    def get_lr(self):
         return self.last_lr
