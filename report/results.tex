@@ -1,1 +1,22 @@
 \section{Results}
+
+\subsection{GPU versus CPU training}
+\begin{table}[h]
+    \centering
+    \begin{tabular}{lccc}
+        \toprule
+        \textbf{Metric} & \textbf{CPU} & \textbf{GPU} & \textbf{GPU (optimized)} \\
+        \midrule
+        Training time (hours)       & 3.0017 & 0.3717 & - \\
+        Avg. Epoch times (seconds)       & 2161.24 & 267.63 & - \\
+        Avg. Forward pass times (seconds)& 0.0770 & 0.0088 & - \\
+        Avg. Backward pass time (seconds)& 0.2020 & 0.0101 & - \\
+        Avg. Single step time (seconds)  & 0.2790 & 0.0189 & - \\
+        Allocated memory per epoch (MB)       & 32998.0  & 865.91 & - \\
+        \bottomrule
+    \end{tabular}
+    \caption{Performance comparison of CPU vs. GPU vs. Optimized GPU}
+\end{table}
+
+
+

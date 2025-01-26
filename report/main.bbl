@@ -1,4 +1,8 @@
-\begin{thebibliography}{HZRS15}
+\begin{thebibliography}{BGLL17}
+
+\bibitem[BGLL17]{britz2017massiveexplorationneuralmachine}
+Denny Britz, Anna Goldie, Minh-Thang Luong, and Quoc Le.
+\newblock Massive exploration of neural machine translation architectures, 2017.
 
 \bibitem[BKH16]{ba2016layernormalization}
 Jimmy~Lei Ba, Jamie~Ryan Kiros, and Geoffrey~E. Hinton.

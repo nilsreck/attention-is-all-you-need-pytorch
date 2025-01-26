@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex main"] 1737728960.65095 "main.aux" "main.bbl" "main" 1737728961.5217 0
-  "./references.bib" 1737728899.24681 2091 43b94648d55bbbd47940f864b3718537 ""
+["bibtex main"] 1737807084.49685 "main.aux" "main.bbl" "main" 1737814755.78383 0
+  "./references.bib" 1737803956.86172 2449 68cc4b8bdb47cf1d143f71332575c731 ""
   "/home/reck/.TinyTeX/texmf-dist/bibtex/bst/base/alpha.bst" 1292289607 23907 a5f93555796fb564b924339521f10a7c ""
-  "main.aux" 1737728961.44809 5756 a3f1da353ea69b39f84b7de9f95a94b1 "pdflatex"
+  "main.aux" 1737814755.61299 5808 a0fe30f8b3aa65bfcf950dab9c6583c4 "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1737728960.66147 "main.tex" "main.pdf" "main" 1737728961.52192 0
+["pdflatex"] 1737814753.93266 "main.tex" "main.pdf" "main" 1737814755.78414 0
   "/etc/texmf/web2c/texmf.cnf" 1721304888.24332 475 c0e671620eb5563b2130f56340a5fde8 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmbsy5.tfm" 1246382020 1120 1e8878807317373affa7f7bba4cf2f6a ""
@@ -50,6 +50,7 @@
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmti10.tfm" 1136768653 1480 aa8e34af0eb6a2941b776984cf1dfdc4 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmti12.tfm" 1136768653 1484 ed72f8f5cf654cda15ecc8e32bfcbee5 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmtt10.tfm" 1136768653 768 1321e9409b4137d6fb428ac9dc956269 ""
+  "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmtt8.tfm" 1136768653 768 d7b9a2629a0c353102ad947dc9221d49 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb" 1248133631 34811 78b52f49e893bcba91bd7581cdc144c0 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb" 1248133631 32080 340ef9bf63678554ee606688e7b5339d ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb" 1248133631 32001 6aeea3afe875097b1eb0da29acd61e28 ""
@@ -60,6 +61,7 @@
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb" 1248133631 36094 798f80770b3b148ceedd006d487db67c ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb" 1248133631 35752 024fb6c41858982481f6968b5fc26508 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb" 1248133631 32722 d7379af29a190c3f453aba36302ff5a9 ""
+  "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb" 1248133631 32734 69e00a6b65cedb993666e42eedb3d48f ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb" 1248133631 32762 224316ccc9ad3ca0423a14971cfa7fc1 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb" 1248133631 33993 9b89b85fd2d9df0482bd47194d1d3bf3 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb" 1248133631 32569 5e5ddc8df908dea60932f3c484a54c0d ""
@@ -67,6 +69,7 @@
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb" 1248133631 32442 c975af247b6702f7ca0c299af3616b80 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb" 1248133631 37944 359e864bd06cde3b1cf57bb20757fb06 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb" 1248133631 36118 fad905eba93cff5bce1e185fe980a177 ""
+  "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt8.pfb" 1248133631 24287 6b803fa9eb1ddff9112e00519b09dd9e ""
   "/usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii" 1461363279 71627 94eb9990bed73c364d7f53f960cc8c5b ""
   "/usr/share/texlive/texmf-dist/tex/generic/atbegshi/atbegshi.sty" 1575674566 24708 5584a51a7101caf7e6bbf1fc27d8f7b1 ""
   "/usr/share/texlive/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty" 1576625341 40635 c40361e206be584d448876bba8a64a3b ""
@@ -148,6 +151,7 @@
   "/usr/share/texlive/texmf-dist/tex/latex/base/atveryend-ltx.sty" 1705352648 2462 6bc53756156dbd71c1ad550d30a3b93f ""
   "/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty" 1705352648 5319 2b738d02ce36ada6dcdd9534940db0ee ""
   "/usr/share/texlive/texmf-dist/tex/latex/base/size10.clo" 1705352648 8448 dbc0dbf4156c0bb9ba01a1c685d3bad0 ""
+  "/usr/share/texlive/texmf-dist/tex/latex/booktabs/booktabs.sty" 1579038678 6078 f1cb470c9199e7110a27851508ed7a5c ""
   "/usr/share/texlive/texmf-dist/tex/latex/cleveref/cleveref.sty" 1525128982 329481 7fc6b003158402a4c694bc0a1b729308 ""
   "/usr/share/texlive/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty" 1579991033 13886 d1306dcf79a944f6988e688c1785f9ce ""
   "/usr/share/texlive/texmf-dist/tex/latex/etoolbox/etoolbox.sty" 1601931149 46845 3b58f70c6e861a13d927bff09d35ecbc ""
@@ -198,16 +202,15 @@
   "figures/HHU_Logo_WortBildMarke.png" 1737535793.26548 29360 7432349956cd1377df06ccda705b7de8 ""
   "figures/transformer.png" 1737712528.99735 113886 db2ec41357a1b4a7afcbb7a89fbea392 ""
   "introduction.tex" 1737710716.76237 1047 2943f1379ded34b95886fa29a997fc17 ""
-  "main.aux" 1737728961.44809 5756 a3f1da353ea69b39f84b7de9f95a94b1 "pdflatex"
-  "main.bbl" 1737728960.65711 978 3f0ea6c7076371d159fa17e49944c8c2 "bibtex main"
-  "main.out" 1737728961.44909 2046 4e83c0f84fe9001410835aa4f6251e3b "pdflatex"
-  "main.tex" 1737714150.08605 2007 8c2788102eb2920f77ff0bfff8bf4e41 ""
-  "methodology.tex" 1737728391.15147 10220 77902fcb6c633b1664fdb5ef6f164c45 ""
+  "main.aux" 1737814755.61299 5808 a0fe30f8b3aa65bfcf950dab9c6583c4 "pdflatex"
+  "main.bbl" 1737807084.50352 1176 7388060307d54e4c66756efb9ff1011a "bibtex main"
+  "main.out" 1737814755.61399 1813 4647624fe7200023f4bafeee9362a033 "pdflatex"
+  "main.tex" 1737805819.15641 893 95881efbbafdd21f7a5ed06a2a29b3b1 ""
+  "methodology.tex" 1737805426.04081 10220 77902fcb6c633b1664fdb5ef6f164c45 ""
   "myData.tex" 1737549090.09386 1203 321b62cc49013b6be7f9dcba36b16920 ""
-  "optimization.tex" 1737728957.41316 2486 a4153670fc8ada8b60130d8fe6acbf05 ""
-  "results.tex" 1736582638 17 e5aa29df4c37f93cdad04a47e60f71d0 ""
+  "results.tex" 1737814752.06495 754 24d921d6f5adbdedd17f94cb554b5e8f ""
   "title_page.tex" 1737549207.51984 907 8013a4c91cdde70e14ac66f3435c0389 ""
-  "training.tex" 1736926806.74229 379 9d5dab54dbf0a3f60943d2a70c676039 ""
+  "training.tex" 1737806201.55463 3713 22f881a30e7a221811b756728c9fe1f5 ""
   (generated)
   "main.aux"
   "main.log"

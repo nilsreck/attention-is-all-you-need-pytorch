@@ -1,5 +1,6 @@
 \documentclass{article}
 \usepackage{graphicx} % Required for inserting images
+\usepackage{booktabs}
 \usepackage{listings}
 \usepackage{amsmath}
 \usepackage{bm}
@@ -19,32 +20,8 @@
 
 \input{introduction}
 \input{methodology}
-\input{optimization}
 \input{training}
 \input{results}
-
-\begin{enumerate}
-	\item Make sure you understand the embeddings of the input. Explain why we need the position of input characters in the embedding.
-	\item Make sure you understand the role of the two different masks in the attention mechanism. Explain the role of each mask in your own words.
-	\item The model starts with a Query (Q) for the current position. For example, if the model predicts the next token for the word "cat", the Query is derived from the representation of "cat".
-\end{enumerate}
-
-\section{Questions}
-\subsection{Practical 4}
-\begin{enumerate}
-	\item Wich dimension do the word embeddings need to have?
-	\item Why do values have a different dimension \(d_v\), compared to queries and keys \(d_k \), wrt the linear projection in mha?
-    \item How does the model differentiate between embedding and positional encoding?
-\end{enumerate}
-\subsection{Practical 5}
-\begin{enumerate}
-	\item Why is it called encoder/decoder?
-\end{enumerate}
-\begin{enumerate}
-	\item Do we put the tokenizer in the \lstinline{TranslationDataset} class?
-	\item What is the word embedding dimension?
-\end{enumerate}
-
 
 \clearpage
 
