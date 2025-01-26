@@ -4,6 +4,8 @@ import torch.optim as optim
 import torch.utils
 from torch.utils.data import DataLoader
 import torch.utils.data
+from torch.amp.grad_scaler import GradScaler
+from torch.amp.autocast_mode import autocast
 from tqdm import tqdm
 from pathlib import Path
 from datetime import datetime
@@ -24,19 +26,17 @@ from transformer_project.run.inference import translate
 from transformer_project.run.bleu import _compute_bleu
 
 # BATCH_SIZE = 1500 https://arxiv.org/pdf/1804.00247
-BATCH_SIZE = 32
-NUM_EPOCHS = 5
-NUM_ENCODER_LAYERS = 4
-NUM_DECODER_LAYERS = 4
+BATCH_SIZE = 1024
+NUM_EPOCHS = 30
+NUM_ENCODER_LAYERS = 6
+NUM_DECODER_LAYERS = 6
 NUM_HEADS = 8
-D_MODEL = 64
+D_MODEL = 512
 DIM_FEED_FORWARD = 4 * D_MODEL
-DROPOUT = 0.0
 MAX_LEN = 64
 VOCAB_SIZE = 50000
 LEARNING_RATE = 1e-3
 WEIGHT_DECAY = 1e-2
-WARMUP_STEPS = 10
 DROPOUT = 0.1
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -98,9 +98,9 @@ optimizer = optim.AdamW(
 
 criterion = nn.CrossEntropyLoss(ignore_index=tokenizer.pad_token_id)
 
-lr_scheduler = LR_Scheduler(optimizer, d_model=D_MODEL, warmup_steps=WARMUP_STEPS)
+lr_scheduler = LR_Scheduler(optimizer, d_model=D_MODEL)
 
-scaler = torch.cuda.amp.GradScaler()
+scaler = GradScaler()
 
 
 def get_timestamp():
@@ -157,9 +157,8 @@ def train_and_validate(
         forward_times = []
         backward_times = []
 
-        for _, batch in enumerate(
-            tqdm(train_dataloader, desc=f"Training Epoch {epoch}")
-        ):
+        iterator = tqdm(train_dataloader, desc=f"Training Epoch {epoch}")
+        for _, batch in enumerate(iterator):
             src_input, tgt_input, tgt_output = (
                 batch["source"],
                 batch["target_input"],
@@ -181,14 +180,18 @@ def train_and_validate(
             optimizer.zero_grad()
 
             forward_start = time.time()
-            with torch.cuda.amp.autocast():
+            with autocast(device_type="cuda", dtype=torch.float16):
                 preds = model(
                     src_input,
                     tgt_input,
                     encoder_attention_mask=enc_att_mask,
                     decoder_attention_mask=dec_att_mask,
                 )
-                loss = criterion(preds.view(-1, vocab_size), tgt_output.view(-1))
+                # preds.view(-1, vocab_size).shape = (batch_size * max_len, vocab_size)
+                loss = criterion(
+                    preds.view(-1, vocab_size),
+                    tgt_output.view(-1),
+                )
 
             torch.cuda.synchronize() if torch.cuda.is_available() else None
             forward_times.append(time.time() - forward_start)
@@ -202,6 +205,13 @@ def train_and_validate(
             backward_times.append(time.time() - backward_start)
 
             train_loss_total += loss.item()
+
+            iterator.set_postfix(
+                {
+                    "loss": round(loss.item(), 2),
+                    "lr": round(lr_scheduler.get_lr(), 10),
+                }
+            )
 
         timing_metrics["epoch_times"].append(time.time() - epoch_start)
         timing_metrics["forward_times"].append(sum(forward_times) / len(forward_times))
