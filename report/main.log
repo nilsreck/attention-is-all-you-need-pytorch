@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.1.11)  27 JAN 2025 10:17
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.1.11)  27 JAN 2025 13:35
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -567,7 +567,7 @@ Package hyperref Info: Link coloring OFF on input line 15.
 \openout4 = `main.out'.
 
  (./myData.tex) (./title_page.tex
-<figures/HHU_Logo_WortBildMarke.png, id=63, 419.4945pt x 160.308pt>
+<figures/HHU_Logo_WortBildMarke.png, id=67, 419.4945pt x 160.308pt>
 File: figures/HHU_Logo_WortBildMarke.png Graphic file (type png)
 <use figures/HHU_Logo_WortBildMarke.png>
 Package pdftex.def Info: figures/HHU_Logo_WortBildMarke.png  used on input line 3.
@@ -576,7 +576,7 @@ Package pdftex.def Info: figures/HHU_Logo_WortBildMarke.png  used on input line 
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map} <./figures/HHU_Logo_WortBildMarke.png>]) (./introduction.tex) (./methodology.tex
 Package hyperref Info: bookmark level for unknown todo defaults to 0 on input line 5.
-<figures/transformer.png, id=74, 1078.0275pt x 867.24pt>
+<figures/transformer.png, id=78, 1078.0275pt x 867.24pt>
 File: figures/transformer.png Graphic file (type png)
 <use figures/transformer.png>
 Package pdftex.def Info: figures/transformer.png  used on input line 9.
@@ -595,17 +595,22 @@ Overfull \hbox (14.3183pt too wide) in paragraph at lines 122--123
  [] 
  []
 
-[4]) (./training.tex [5]
-Underfull \hbox (badness 10000) in paragraph at lines 28--32
+[4]) (./training.tex
+Underfull \hbox (badness 10000) in paragraph at lines 16--16
+[][][][]$\OT1/cmtt/m/n/8 https : / / images . nvidia . com / aem-[]dam / en-[]zz / Solutions / data-[]center /
+ []
+
+[5]
+Underfull \hbox (badness 10000) in paragraph at lines 31--35
 
  []
 
-) (./results.tex
-Overfull \hbox (7.93755pt too wide) in paragraph at lines 6--18
+) (./results.tex [6]
+Overfull \hbox (20.17355pt too wide) in paragraph at lines 20--32
  [][] 
  []
 
-[6]) [7] [8
+) [7] [8
 
 ] (./main.bbl) [9
 
@@ -616,21 +621,21 @@ LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-22>
  ***********
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 4647624FE7200023F4BAFEEE9362A033;1813.
+(rerunfilecheck)             Checksum: B3B2EA79F9A25A2917CD39591EC85EE8;1969.
  ) 
 Here is how much of TeX's memory you used:
- 24028 strings out of 474222
- 453188 string characters out of 5748733
+ 24042 strings out of 474222
+ 453462 string characters out of 5748733
  1939975 words of memory out of 5000000
- 45834 multiletter control sequences out of 15000+600000
+ 45845 multiletter control sequences out of 15000+600000
  572660 words of font info for 86 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  99i,9n,101p,431b,965s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt8.pfb>
-Output written on main.pdf (10 pages, 353325 bytes).
+Output written on main.pdf (10 pages, 356496 bytes).
 PDF statistics:
- 272 PDF objects out of 1000 (max. 8388607)
- 215 compressed objects within 3 object streams
- 53 named destinations out of 1000 (max. 500000)
- 135 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 283 PDF objects out of 1000 (max. 8388607)
+ 226 compressed objects within 3 object streams
+ 56 named destinations out of 1000 (max. 500000)
+ 143 words of extra memory for PDF output out of 10000 (max. 10000000)
 

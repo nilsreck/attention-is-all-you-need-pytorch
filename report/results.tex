@@ -1,22 +1,37 @@
 \section{Results}\label{sec:results}
 
+This section provides the results of the CPU vs. GPU comparison, as well as the perfomance of the Transformer model on the translation task.
+
 \subsection{GPU versus CPU training}
-\begin{table}[h]
+
+\cref{tab:comparison} illustrates the results of the perfomance comparison between CPU and GPU training.
+The GPU significantly accelerates the overall training process by a facor of 8.07.
+Accordingly, the GPU processes a single epoch, as well as a forward pass, faster by approximately the same margin.
+The GPU achieves the most significant speed-up (20x) during the backward pass.
+This highlights the GPU's superior efficiency in handling computationally expensive tasks, such as gradient computation, which heavily rely on parallelized matrix calculations.
+Surprisingly, the GPU uses 38 times less memory per epoch compared to the CPU, which can mainly be attributed to the small batch size of 32 for both setups.\todo{why does that happen?} \\
+Due to approaching deadlines and long queues on the high performance cluster, we abstain from further optimizations of the GPU codebase.
+For instance, potential improvements like offloading BLEU score calculation to the CPU, and leveraging mixed precision (which is implemented in full model training), among other optimizations, could further improve performance. 
+
+
+
+\begin{table}[ht]
     \centering
     \begin{tabular}{lccc}
         \toprule
-        \textbf{Metric} & \textbf{CPU} & \textbf{GPU} & \textbf{GPU (optimized)} \\
+        \textbf{Metric} & \textbf{CPU} & \textbf{GPU} & \textbf{CPU to GPU Ratio} \\
         \midrule
-        Training time (hours)       & 3.0017 & 0.3717 & - \\
-        Avg. Epoch times (seconds)       & 2161.24 & 267.63 & - \\
-        Avg. Forward pass times (seconds)& 0.0770 & 0.0088 & - \\
-        Avg. Backward pass time (seconds)& 0.2020 & 0.0101 & - \\
-        Avg. Single step time (seconds)  & 0.2790 & 0.0189 & - \\
-        Allocated memory per epoch (MB)       & 32998.0  & 865.91 & - \\
+        Training time (hours)       & 3.0017 & 0.3717 & 8.07 \\
+        Avg. Epoch times (seconds)       & 2161.24 & 267.63 & 8.07 \\
+        Avg. Forward pass times (seconds)& 0.0770 & 0.0088 & 8.75 \\
+        Avg. Backward pass time (seconds)& 0.2020 & 0.0101 & 20 \\
+        Avg. Single step time (seconds)  & 0.2790 & 0.0189 & 14.76  \\
+        Allocated memory per epoch (MB)       & 32998.0  & 865.91 & 38.1 \\
         \bottomrule
     \end{tabular}
-    \caption{Performance comparison of CPU vs. GPU vs. Optimized GPU}
+    \caption{Performance comparison of CPU vs. GPU}
+    \label{tab:comparison}
 \end{table}
+Additionally, the A100 GPU has a memory bandwidth of 1555 GB/sec, meaning it can transfer data from the Video Random Access Memory (VRAM) at an exceptionally high rate compared to a CPU.
 
-
-
+\subsection{Machine Translation}

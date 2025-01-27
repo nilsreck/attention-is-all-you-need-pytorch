@@ -5,12 +5,15 @@ The code is available on GitLab\footnote{\url{https://git.hhu.de/nirec101/transf
 
 \subsection{Data}
 We train on the WMT 17 German to English dataset\footnote{\url{https://www.statmt.org/wmt17/translation-task.html}}, consisting of about 4.9 million sentence pairs after filtering out sequences exceeding 64 tokens in length.
+To not inflict unnecessary load on the GPU during training, we preprocess the datasets berforehand.
 The sequences are encoded using byte-pair encoding~\cite{britz2017massiveexplorationneuralmachine}, which has a shared source-target vocabulary of 50000 tokens.
 We use only 5\% of the training data for benchmarking CPU vs. GPU performance with a batch size of 32 on both.
 For the final model perfomance reported in \cref{sec:results}, however, we train on the entire dataset with a batch size of 1024 sentence pairs.
 
 \subsection{Training and Schedule}
-We train our models on a single node with five processing cores and a single NVIDIA A100 GPU for XXX steps.
+We train our models on a single node with five processing cores and a single NVIDIA A100 GPU for XXX steps (30 epochs).
+Since GPUs are optimized for parallel computation, they are well-suited for the highly parallel nature of sequence processing in Transformer models.
+Unlike CPUs, which are designed for handling a wide range of sequential operations, GPUs distribute the workload across its many cores, consisting of 8192 FP32 CUDA cores and 432 Tensor cores\footnote{\url{https://images.nvidia.com/aem-dam/en-zz/Solutions/data-center/nvidia-ampere-architecture-whitepaper.pdf}}, optimized for matrix operations.
 For benchmarking CPU vs. GPU performance under identical conditions, we use the exact same set of hyperparameters on both setups, with the CPU configuration consiting of five cores and 64GB of memory.
 Each step took about XXX seconds, utilizing mixed precision.
 
