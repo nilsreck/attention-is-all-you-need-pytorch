@@ -6,17 +6,17 @@ The code is available on GitLab\footnote{\url{https://git.hhu.de/nirec101/transf
 \subsection{Data}
 We train on the WMT 17 German to English dataset\footnote{\url{https://www.statmt.org/wmt17/translation-task.html}}, consisting of about 4.9 million sentence pairs after filtering out sequences exceeding 64 tokens in length.
 The sequences are encoded using byte-pair encoding~\cite{britz2017massiveexplorationneuralmachine}, which has a shared source-target vocabulary of 50000 tokens.
-Each training batch consists of 1024 sentence pairs.
+We use only 5\% of the training data for benchmarking CPU vs. GPU performance with a batch size of 32 on both.
+For the final model perfomance reported in \cref{sec:results}, however, we train on the entire dataset with a batch size of 1024 sentence pairs.
 
 \subsection{Training and Schedule}
 We train our models on a single node with five processing cores and a single NVIDIA A100 GPU for XXX steps.
+For benchmarking CPU vs. GPU performance under identical conditions, we use the exact same set of hyperparameters on both setups, with the CPU configuration consiting of five cores and 64GB of memory.
 Each step took about XXX seconds, utilizing mixed precision.
 
-In the backward pass, if you have multiple rank-deficient matrices, your rank becomes even lower.
-because the composition of rank-deficient matrices leads to a further reduction in the rank, potentially causing the gradients to vanish or lose critical information needed for effective weight updates.
 
 \subsection{AdamW Optimizer}
-We use the AdamW optimizer~\cite{loshchilov2019decoupledweightdecayregularization} with \(\beta_1=0.9\), \(\beta_2=0.99\) and \(\epsilon=10^{-8}\).
+In all the experiments, we use the AdamW optimizer~\cite{loshchilov2019decoupledweightdecayregularization} with \(\beta_1=0.9\), \(\beta_2=0.99\) and \(\epsilon=10^{-8}\).
 This section elaborates the core differences between the Adam optimizer~\cite{kingma2017adammethodstochasticoptimization} used in the original Transformer architecture and AdamW.\\
 Both, in Adam and AdamW, \cref{eq:mean_var} shows that the learning rate is adjusted for each parameter independently based on the history of gradients.
 The running averages, \(m_{t-1}\) and \(v_{t-1}\), make it possible to include the history of the gradients in the calculation of the first and second moment:
@@ -48,3 +48,9 @@ In the original Adam, weight decay is added directly to the gradient. Consequent
 \theta_{t+1} = \theta_t - \eta \left( \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} \right) - \eta \lambda \theta_t
 \end{equation}
 \todo[inline]{Add figure from AdamW paper?}
+
+
+
+
+In the backward pass, if you have multiple rank-deficient matrices, your rank becomes even lower.
+because the composition of rank-deficient matrices leads to a further reduction in the rank, potentially causing the gradients to vanish or lose critical information needed for effective weight updates.
