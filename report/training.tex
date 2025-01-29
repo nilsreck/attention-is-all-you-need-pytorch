@@ -11,7 +11,7 @@ We use only 5\% of the training data for benchmarking CPU vs. GPU performance wi
 For the final model perfomance reported in \cref{sec:results}, however, we train on the entire dataset with a batch size of 1024 sentence pairs.
 
 \subsection{Training and Schedule}
-We train our models on a single node with five processing cores and a single NVIDIA A100 GPU for XXX steps (30 epochs).
+We train our models on a single node with five processing cores and a single NVIDIA A100 GPU for XXX steps (10 epochs).
 Since GPUs are optimized for parallel computation, they are well-suited for the highly parallel nature of sequence processing in Transformer models.
 Unlike CPUs, which are designed for handling a wide range of sequential operations, GPUs distribute the workload across its many cores, consisting of 8192 FP32 CUDA cores and 432 Tensor cores\footnote{\url{https://images.nvidia.com/aem-dam/en-zz/Solutions/data-center/nvidia-ampere-architecture-whitepaper.pdf}}, optimized for matrix operations.
 For benchmarking CPU vs. GPU performance under identical conditions, we use the exact same set of hyperparameters on both setups, with the CPU configuration consiting of five cores and 64GB of memory.
