@@ -4,18 +4,18 @@ This section covers the training regime and a comparison between CPU and GPU tra
 The code is available on GitLab\footnote{\url{https://git.hhu.de/nirec101/transformer_project}}.
 
 \subsection{Data}
-We train on the WMT 17 German to English dataset\footnote{\url{https://www.statmt.org/wmt17/translation-task.html}}, consisting of about 4.9 million sentence pairs after filtering out sequences exceeding 64 tokens in length.
-To not inflict unnecessary load on the GPU during training, we preprocess the datasets berforehand.
+We train on the WMT 17 German-to-English dataset\footnote{\url{https://www.statmt.org/wmt17/translation-task.html}}, consisting of about 4.9 million sentence pairs after filtering out sequences exceeding 64 tokens in length.
+To not inflict unnecessary load on the GPU during training, we preprocess the datasets beforehand.
 The sequences are encoded using byte-pair encoding~\cite{britz2017massiveexplorationneuralmachine}, which has a shared source-target vocabulary of 50000 tokens.
 We use only 5\% of the training data for benchmarking CPU vs. GPU performance with a batch size of 32 on both.
-For the final model perfomance reported in \cref{sec:results}, however, we train on the entire dataset with a batch size of 1024 sentence pairs.
+For the final model performance reported in \cref{sec:results}, however, we train on the entire dataset with a batch size of 256 sentence pairs.
 
 \subsection{Training and Schedule}
-We train our models on a single node with five processing cores and a single NVIDIA A100 GPU for XXX steps (10 epochs).
+We train our models on a single node with five processing cores and a single NVIDIA A100 GPU for around 170000 steps (10 epochs).
 Since GPUs are optimized for parallel computation, they are well-suited for the highly parallel nature of sequence processing in Transformer models.
-Unlike CPUs, which are designed for handling a wide range of sequential operations, GPUs distribute the workload across its many cores, consisting of 8192 FP32 CUDA cores and 432 Tensor cores\footnote{\url{https://images.nvidia.com/aem-dam/en-zz/Solutions/data-center/nvidia-ampere-architecture-whitepaper.pdf}}, optimized for matrix operations.
-For benchmarking CPU vs. GPU performance under identical conditions, we use the exact same set of hyperparameters on both setups, with the CPU configuration consiting of five cores and 64GB of memory.
-Each step took about XXX seconds, utilizing mixed precision.
+Unlike CPUs, which are designed for handling a wide range of sequential operations, the A100 distributes the workload across its many cores, consisting of 8192 FP32 CUDA cores and 432 Tensor cores\footnote{\url{https://images.nvidia.com/aem-dam/en-zz/Solutions/data-center/nvidia-ampere-architecture-whitepaper.pdf}}.
+For benchmarking CPU vs. GPU performance under identical conditions, we use the exact same set of hyperparameters on both setups, with the CPU configuration consisting of five cores and 64GB of memory.
+During full model training, each step took about 0.1 seconds, utilizing mixed precision.
 
 
 \subsection{AdamW Optimizer}
@@ -37,7 +37,7 @@ The bias correction from \cref{eq:moments} is important because, without it, the
 \label{eq:moments}
 \end{equation}
 \\
-In the original Adam, weight decay is added directly to the gradient. Consequently, this means that the weight decay term is included in the moment estimates (\(m_t\) and \(v_t\)). The AdamW optimizer circumvents this problem: The weight decay is applied directly to the weights after the adaptive gradient update, as shown in \cref{eq:weight_decay}:
+In the original Adam, weight decay is added directly to the gradient. Consequently, this means that the weight decay term is included in the moment estimates (\(m_t\) and \(v_t\)). The AdamW optimizer circumvents this problem: The weight decay is applied directly to the weights after the gradient update, as shown in \cref{eq:weight_decay}:
 % Equation 5: Weight decay
 \begin{equation}
 \label{eq:weight_decay}
@@ -50,10 +50,15 @@ In the original Adam, weight decay is added directly to the gradient. Consequent
 \label{eq:update}
 \theta_{t+1} = \theta_t - \eta \left( \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} \right) - \eta \lambda \theta_t
 \end{equation}
-\todo[inline]{Add figure from AdamW paper?}
+
+\subsection{Estimation of Memory Requirements}
+Estimating memory requirements involves accounting for not only the model parameters but also the optimizer states, activation storage during the forward and backward passes for proper gradient computation, and additional buffers used in matrix operations, softmax computations, etc.\\
+PyTorch uses \texttt{float32} precision by default, meaning it uses 4 bytes to represent a single parameter.
+The full Transformer model comprises \(\sim\) 95 million parameters, resulting in \(\sim\) 360MB of storage.
+However, that does not account for the optimizer states, which contribute two extra values (first and second moment) per parameter (excluding bias terms), effectively tripling the memory requirements.
+On top of that, the activations during the forward pass have to be considered, as well as the gradients for the backward pass, each contributing tensors of size \((256, 64, 512)\) for each layer.\\
+For our model, this results in an approximate memory requirement of 6GB, which is consistent with the memory usage logs from training.
+The tensor size is heavily sensible to the batch size, which could be empirically validated during training; a run with a larger batch size would crash with an out-of-memory error, even though theoretically, our GPUs have 40-80GB of VRAM, an issue to be further investigated.
 
 
 
-
-In the backward pass, if you have multiple rank-deficient matrices, your rank becomes even lower.
-because the composition of rank-deficient matrices leads to a further reduction in the rank, potentially causing the gradients to vanish or lose critical information needed for effective weight updates.

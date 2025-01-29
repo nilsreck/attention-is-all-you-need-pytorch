@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex main"] 1738156135.20095 "main.aux" "main.bbl" "main" 1738156289.1943 0
+["bibtex main"] 1738163500.4602 "main.aux" "main.bbl" "main" 1738163527.84978 0
   "./references.bib" 1737803956.86172 2449 68cc4b8bdb47cf1d143f71332575c731 ""
   "/home/reck/.TinyTeX/texmf-dist/bibtex/bst/base/alpha.bst" 1292289607 23907 a5f93555796fb564b924339521f10a7c ""
-  "main.aux" 1738156289.11808 5759 8019a2e46de29a30c4362816cbd02d30 "pdflatex"
+  "main.aux" 1738163527.77086 6000 115d91d35412f91488bfe5d8adb2940a "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1738156288.37665 "main.tex" "main.pdf" "main" 1738156289.19449 0
+["pdflatex"] 1738163527.03044 "main.tex" "main.pdf" "main" 1738163527.84995 0
   "/etc/texmf/web2c/texmf.cnf" 1721304888.24332 475 c0e671620eb5563b2130f56340a5fde8 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmbsy5.tfm" 1246382020 1120 1e8878807317373affa7f7bba4cf2f6a ""
@@ -189,18 +189,21 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1707919699 40399 f2c302f7d2af602abb742093540a5834 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1736588527.23258 5472669 54eaf61a88b6b7896ebd0dac973cb29c ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1736588585 8214746 3a44ccb62f00a9ccdcb52a0c27ce23d7 ""
+  "appendix.tex" 1738161827.1065 346 b51485ba1e1e65d9bd05c3c2b4ce81cf ""
   "figures/HHU_Logo_WortBildMarke.png" 1737535793.26548 29360 7432349956cd1377df06ccda705b7de8 ""
+  "figures/bleu_score_val_20250129_142747.png" 1738157267 25637 c77dd34425b730b561f7bb8a28b727a2 ""
+  "figures/lr_schedule_20250129_142747.png" 1738157267 37335 567a3bcccd87e6ff3173d583867d0ef5 ""
   "figures/transformer.png" 1737712528.99735 113886 db2ec41357a1b4a7afcbb7a89fbea392 ""
-  "introduction.tex" 1738152109.02142 1075 bc9215b94e96f4de8500f35e99567e00 ""
-  "main.aux" 1738156289.11808 5759 8019a2e46de29a30c4362816cbd02d30 "pdflatex"
-  "main.bbl" 1738156135.20838 1176 7388060307d54e4c66756efb9ff1011a "bibtex main"
-  "main.out" 1738156289.11908 2352 ed34cfec39f703ed590e0b817b03a66e "pdflatex"
-  "main.tex" 1737805819.15641 893 95881efbbafdd21f7a5ed06a2a29b3b1 ""
-  "methodology.tex" 1738156287.76006 8831 e6e12adcf454616815a00c81e570cb84 ""
+  "introduction.tex" 1738163283.86825 967 7321e16c040aadba7e11add6a48b3b21 ""
+  "main.aux" 1738163527.77086 6000 115d91d35412f91488bfe5d8adb2940a "pdflatex"
+  "main.bbl" 1738163500.46701 1176 7388060307d54e4c66756efb9ff1011a "bibtex main"
+  "main.out" 1738163527.77086 2513 77a025944315fb47bfc8dffc281dee84 "pdflatex"
+  "main.tex" 1738161648.26497 753 9eb40b99f79aa625e037dab8b1b7fa77 ""
+  "methodology.tex" 1738162390.48706 8587 a7494ab5812bf83809c6322d4e93cffb ""
   "myData.tex" 1737549090.09386 1203 321b62cc49013b6be7f9dcba36b16920 ""
-  "results.tex" 1738071473.53172 3509 a990ec70160e1dddd8e9c7b98ec14358 ""
+  "results.tex" 1738163526.54586 3324 f3522680d4be3ae0bee410dabcc70e09 ""
   "title_page.tex" 1737549207.51984 907 8013a4c91cdde70e14ac66f3435c0389 ""
-  "training.tex" 1738069843.49906 4752 7f00dbb5d1b9b28c532fb5b57f3c00ea ""
+  "training.tex" 1738163061.67656 5769 1b264838ad2a94a2c96696468f59decf ""
   (generated)
   "main.aux"
   "main.log"

@@ -1,11 +1,11 @@
 \section{Results}\label{sec:results}
 
-This section provides the results of the CPU vs. GPU comparison, as well as the perfomance of the Transformer model on the translation task.
+This section provides the results of the CPU vs. GPU comparison, as well as the performance of the Transformer model on the translation task.
 
 \subsection{GPU versus CPU Training}
 
-\cref{tab:comparison} illustrates the results of the perfomance comparison between CPU and GPU training.
-The GPU significantly accelerates the overall training process by a facor of 8.07.
+\cref{tab:comparison} illustrates the results of the performance comparison between CPU and GPU training.
+The GPU significantly accelerates the overall training process by a factor of 8.07.
 Accordingly, the GPU processes a single epoch, as well as a forward pass, faster by approximately the same margin.
 The GPU achieves the most significant speed-up (20x) during the backward pass.
 This highlights the GPU's superior efficiency in handling computationally expensive tasks, such as gradient computation, which heavily rely on parallelized matrix calculations.
@@ -35,9 +35,17 @@ This results in longer feedback cycles because each attempt requires submitting 
 If errors occur, they only got discovered after the job queue processed the experiment, further extending debugging time.
 Additionally, estimating the memory resources for optimizing throughput was time-consuming and often required trial and error, especially without easy access to a GPU for testing.
 
-\subsection{Estimation of Memory Requirements}
-For estimating memory requirements, you not only have to account for the amout of model parameters, but also the optimizer states, activation storage during the forward and backward passes to ensure proper gradient computation, as well as additional buffers used during matrix operations, softmax computations, etc.
-PyTorch uses \texttt{float32} precision by default, meaning it uses 4 bytes to represent a single parameter.
-The full Transformer model comprises \(\sim\) 95 million parameters, resulting in \(\sim\) 360MB of storage.
-However, that does not account for the optimizer states, which contribute two extra values (first and second moment) per parameter (excluding bias terms), effectively tripling the memory requirements.
+\clearpage
 \subsection{Machine Translation}
+\cref{fig:bleu} shows that on the WMT German-to-English translation task, the Transformer model reaches a BLEU score of around 0.34 with a length ratio of 0.99 on the validation set, which implies solid, coherent translations.
+Training took approximately 11.5 hours.
+
+
+\begin{figure}[ht]
+    \begin{center}
+        \includegraphics[width=\textwidth]{figures/bleu_score_val_20250129_142747.png}
+    \end{center}
+    \caption{The BLEU score is calculated on the validation set after each epoch. It approaches a value of around 0.34.}
+    \label{fig:bleu}
+\end{figure}
+Word count: 2282
