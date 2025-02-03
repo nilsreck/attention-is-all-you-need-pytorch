@@ -52,6 +52,70 @@ model = Transformer(
 ).to(DEVICE)
 
 
+def count_parameters(model):
+    """Count and print model parameter statistics"""
+    total_params = sum(p.numel() for p in model.parameters())
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+    print("\nModel Parameter Count:")
+    print(f"Total parameters: {total_params:,}")
+    print(f"Trainable parameters: {trainable_params:,}")
+    print(f"Model size (MB): {total_params * 4 / (1024 * 1024):.2f}")
+
+    # Optional: Print parameters by component
+    print("\nParameters by layer:")
+    for name, param in model.named_parameters():
+        print(f"{name}: {param.numel():,}")
+
+
+count_parameters(model)
+
+
+def calculate_memory_requirements(
+    model, batch_size, seq_length, hidden_dim, num_layers
+):
+    total_params = sum(p.numel() for p in model.parameters())
+    param_memory = total_params * 4
+
+    optimizer_memory = param_memory * 2
+
+    activation_size = batch_size * seq_length * hidden_dim
+    layer_activation = activation_size * 4
+    forward_memory = layer_activation * num_layers
+
+    backward_memory = forward_memory * 2
+
+    buffer_memory = (
+        param_memory + optimizer_memory + forward_memory + backward_memory
+    ) * 0.1
+
+    total_memory = (
+        param_memory
+        + optimizer_memory
+        + forward_memory
+        + backward_memory
+        + buffer_memory
+    )
+
+    print("\nMemory Requirements Analysis:")
+    print(f"Model Parameters: {param_memory / 1024**3:.2f} GB")
+    print(f"Optimizer States: {optimizer_memory / 1024**3:.2f} GB")
+    print(f"Forward Activations: {forward_memory / 1024**3:.2f} GB")
+    print(f"Backward Pass: {backward_memory / 1024**3:.2f} GB")
+    print(f"Buffer Estimate: {buffer_memory / 1024**3:.2f} GB")
+    print(f"Total Estimated Memory: {total_memory / 1024**3:.2f} GB")
+
+    return total_memory
+
+
+calculate_memory_requirements(
+    model=model,
+    batch_size=BATCH_SIZE,
+    seq_length=MAX_LEN,
+    hidden_dim=D_MODEL,
+    num_layers=NUM_ENCODER_LAYERS + NUM_DECODER_LAYERS,
+)
+
 # cleaned_train = load_or_clean_data("train[:1%]")
 # cleaned_val = load_or_clean_data("validation[:160]")
 
