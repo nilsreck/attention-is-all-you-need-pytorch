@@ -35,6 +35,7 @@ The Transformer model reaches a BLEU score of around 0.34 with a length ratio of
 ![bleu score](report/figures/bleu_score_val_20250129_142747.png)
 
 ## Translation Examples
+Below are two example translations showcasing where the model still struggles to translate correctly.
 
 ### Example 1
 > **Source:** 28-jähriger Koch in San Francisco Mall tot aufgefunden  
