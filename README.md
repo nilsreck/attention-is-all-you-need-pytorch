@@ -31,7 +31,7 @@ Notice that I used the [AdamW optimizer](https://arxiv.org/abs/1711.05101), whic
 
 
 ## Results
-The Transformer model reaches a BLEU score of around 0.34 with a length ratio of 0.99 on the validation.
+The Transformer model reaches a BLEU score of around 0.34 with a length ratio of 0.99 on the validation set.
 ![bleu score](report/figures/bleu_score_val_20250129_142747.png)
 
 ## Translation Examples
