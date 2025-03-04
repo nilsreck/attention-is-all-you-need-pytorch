@@ -5,10 +5,11 @@ This is mainly due to the Transformer’s ability to process multiple sequences 
 Until today, the Transformer model remains the architecture of choice for top-performing large language models, like GPT-4o.
 
 > The official Tensorflow Implementation can be found in: [tensorflow/tensor2tensor](https://github.com/tensorflow/tensor2tensor/blob/master/tensor2tensor/models/transformer.py).
-> You can read more about the Transformer model, specifically the attention mechanism and the intuition behind it, in "[The Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/)".
+
+> You can learn more about the Transformer model, particularly the attention mechanism and the underlying intuition, in "[The Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/)."
 
 My [Project Report](report/main.pdf) provides a more detailed description of my implementation, training regime, and results.
-In particular, it focuses on providing the reader with detailed knowledge about its components and their interplay, as well as my insights and struggles during development and training.
+It focuses on providing the reader with detailed information about its components and their interplay, as well as my insights and struggles during development and training.
 Additionally, it provides an analysis of memory requirements for CPU and GPU training.
 
 ![Transformer architecture](report/figures/transformer.png)
